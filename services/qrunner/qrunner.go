@@ -3,10 +3,12 @@ package qrunner
 import (
 	"bytes"
 	"context"
+	"encoding/csv"
 	"fmt"
 	"log"
 	"os"
 	"os/user"
+  "io"
 
 	"github.com/xo/usql/drivers"
 	"github.com/xo/usql/env"
@@ -23,6 +25,7 @@ type Qrunner struct {
 
 type Result struct {
   Rows [][]string  
+  Header []string
 }
 
 func New(dsn string) (*Qrunner, error) {
@@ -50,13 +53,27 @@ func New(dsn string) (*Qrunner, error) {
 	return q, nil
 }
 
-func (q *Qrunner) Query(ctx context.Context, sqlstr string) (string, error) {
+func (q *Qrunner) Query(ctx context.Context, sqlstr string) (*Result, error) {
 	q.buf.Reset()
-  log.Println("sql", sqlstr)
-  
 	prefix := stmt.FindPrefix(sqlstr, true, true, true)
+  log.Println("sql", prefix, sqlstr)
+
 	err := q.h.Execute(ctx, q.buf, metacmd.Option{}, prefix, sqlstr, false)
-	return q.buf.String(), err
+  if err != nil {
+    return nil, err
+  }
+  return parseCsv(q.buf)
+}
+
+func parseCsv(r io.Reader) (*Result, error) {
+  cr := csv.NewReader(r)
+  resrows,err := cr.ReadAll()
+  var res Result
+  if len(resrows) > 0 {
+    res.Header = resrows[0]
+    res.Rows = resrows[1:]
+  }
+	return &res, err
 }
 
 type Metatype string

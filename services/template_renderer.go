@@ -26,7 +26,7 @@ type (
 
 		// templatePath stores the complete path to the templates directory
 		templatesPath string
-		config *config.Config
+		config        *config.Config
 	}
 
 	// TemplateParsed is a wrapper around parsed templates which are stored in the TemplateRenderer cache
@@ -59,12 +59,12 @@ func NewTemplateRenderer(cfg *config.Config) *TemplateRenderer {
 	t := &TemplateRenderer{
 		templateCache: sync.Map{},
 		// funcMap:       funcmap.GetFuncMap(),
-		config:        cfg,
+		config: cfg,
 	}
 
 	// Gets the complete templates directory path
 	// This is needed in case this is called from a package outside of main, such as within tests
-  // TODO embed templates 
+	// TODO embed templates
 	_, b, _, _ := runtime.Caller(0)
 	d := path.Join(path.Dir(b))
 	t.templatesPath = filepath.Join(filepath.Dir(d), config.TemplateDir)
@@ -115,7 +115,8 @@ func (t *TemplateRenderer) parse(build *templateBuild) (*TemplateParsed, error) 
 
 	// Check if the template has not yet been parsed or if the app environment is local, so that
 	// templates reflect changes without having the restart the server
-	if tp, err = t.Load(build.group, build.key); err != nil || t.config.App.Environment == config.EnvLocal {
+	if tp, err = t.Load(build.group, build.key); err != nil {
+		// }|| t.config.App.Environment == config.EnvLocal {
 		// Initialize the parsed template with the function map
 		parsed := template.New(build.base + config.TemplateExt).
 			Funcs(t.funcMap)

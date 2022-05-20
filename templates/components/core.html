@@ -1,0 +1,22 @@
+{{define "head"}}
+    <title>{{ if .Title }} | {{ .Title }}{{ end }}</title>
+    <link rel="icon" href="/files/favicon.png">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <link rel="stylesheet" href="/files/bulma.min.css">
+    <link rel="stylesheet" href="/files/styles.css">
+    <script src="/files/htmx.js"></script>
+{{end}}
+
+{{define "footer"}}
+    <script>
+        document.body.addEventListener('htmx:beforeSwap', function(evt) {
+            if (evt.detail.xhr.status >= 400){
+                evt.detail.shouldSwap = true;
+                evt.detail.target = htmx.find("body");
+            }
+        });
+    </script>
+{{end}}

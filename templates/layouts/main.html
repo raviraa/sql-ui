@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="en" style="height:100%;">
     <head>
-        {{template "css" .}}
-        {{template "js" .}}
+        {{template "head" .}}
     </head>
     <body class="has-background-light" style="min-height:100%;">
         <nav class="navbar is-dark">
             <div class="container">
                 <div class="navbar-brand" hx-boost="true">
-                    <a href="/" class="navbar-item">Sql ui</a>
+                    <a href="/" class="navbar-item"> 🌐</a>
+                    <a href="/query" class="navbar-item">Query</a>
+                    <a href="/tables" class="navbar-item">Tables</a>
                 </div>
             </div>
         </nav>
@@ -29,14 +30,17 @@
                 <div class="column is-10">
                     <div class="box">
                         {{- if .Title}}
-                            <h1 class="title">{{.Title}}</h1>
+                            <h5>{{.Title}}</h5>
                         {{- end}}
 
+                        {{template "query-textarea" .}}
+                        {{template "content" .}}
                     </div>
                 </div>
             </div>
         </div>
 
+      {{template "footer" .}}
     </body>
 </html>
 

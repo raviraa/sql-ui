@@ -2,9 +2,7 @@ package qrunner
 
 import (
 	"context"
-	"encoding/csv"
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -26,15 +24,12 @@ func TestConn(t *testing.T) {
 	require.Contains(t, res, `name,varchar,`)
 	// require.Contains(t, res, `"Name":"val","Type":"INTEGER",`)
 
-res, err = q.Query(context.Background(), "select * from t1")
+  resrows, err := q.Query(context.Background(), "select * from t1")
 	require.Nil(t, err)
-	println(res)
-  r := csv.NewReader(strings.NewReader(res))
-  resrows,err := r.ReadAll()
 	require.Nil(t, err)
   fmt.Printf("%+v\n", resrows)
-  require.Equal(t, "name", resrows[0][1])
-  require.Equal(t, `nine,nine"|"`, resrows[4][1])
+  require.Equal(t, "name", resrows.Rows[0][1])
+  require.Equal(t, `nine,nine"|"`, resrows.Rows[4][1])
 
 	_, err = q.Query(context.Background(), "select * from t2")
 	// _, err = q.Query(context.Background(), "select count(*) as count from t2")

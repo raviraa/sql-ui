@@ -44,7 +44,9 @@ func NewContainer() *Container {
 
 // Shutdown shuts the Container down and disconnects all connections
 func (c *Container) Shutdown() error {
+  log.Println("shutting db")
   return c.Qrunner.Close()
+  return nil
 }
 
 

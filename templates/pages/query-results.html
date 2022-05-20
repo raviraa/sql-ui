@@ -1,0 +1,30 @@
+{{define "content"}}
+
+{{if .Data.Errmsg}}
+<div class="danger">{{.Data.Errmsg}}</div>
+{{else}}
+<div class="table-container">
+<table class="query-results table is-bordered">
+  <thead>
+    <tr>
+      {{range .Data.Result.Header}}
+      <th>{{.}}</th>
+      {{end}}
+    </tr>
+  </thead>
+  <tbody>
+    {{range .Data.Result.Rows}} 
+    <tr> 
+      {{range .}}
+      <td>{{.}}</td>
+      {{end}}
+    </tr>
+    {{end}}
+  </tbody>
+</table>
+</div>
+{{end}}
+
+{{end}}
+
+

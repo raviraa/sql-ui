@@ -1,7 +1,6 @@
 package routes
 
 import (
-
 	"sql-ui/controller"
 	"sql-ui/services/qrunner"
 
@@ -15,7 +14,7 @@ type (
 	}
 
 	tablesData struct {
-		Errmsg      string
+		Errmsg string
 		Result *qrunner.Result
 	}
 )
@@ -26,7 +25,7 @@ func (c *tables) Get(ctx *gin.Context) {
 	page.Name = "tables"
 	page.Title = "tables"
 	page.Data = tablesData{
-    Errmsg: "testing",
+		Errmsg: "testing",
 	}
 
 	c.RenderPage(*ctx, page)

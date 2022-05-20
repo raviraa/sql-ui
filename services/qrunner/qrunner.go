@@ -5,10 +5,10 @@ import (
 	"context"
 	"encoding/csv"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/user"
-  "io"
 
 	"github.com/xo/usql/drivers"
 	"github.com/xo/usql/env"
@@ -24,13 +24,13 @@ type Qrunner struct {
 }
 
 type Result struct {
-  Rows [][]string  
-  Header []string
+	Rows   [][]string
+	Header []string
 }
 
 func New(dsn string) (*Qrunner, error) {
 	env.Pset("format", "csv")
-  fmt.Printf("%+v\n", env.Pall())
+	fmt.Printf("%+v\n", env.Pall())
 	wd, err := os.Getwd()
 	if err != nil {
 		return nil, err
@@ -56,23 +56,23 @@ func New(dsn string) (*Qrunner, error) {
 func (q *Qrunner) Query(ctx context.Context, sqlstr string) (*Result, error) {
 	q.buf.Reset()
 	prefix := stmt.FindPrefix(sqlstr, true, true, true)
-  log.Println("sql", prefix, sqlstr)
+	log.Println("sql", prefix, sqlstr)
 
 	err := q.h.Execute(ctx, q.buf, metacmd.Option{}, prefix, sqlstr, false)
-  if err != nil {
-    return nil, err
-  }
-  return parseCsv(q.buf)
+	if err != nil {
+		return nil, err
+	}
+	return parseCsv(q.buf)
 }
 
 func parseCsv(r io.Reader) (*Result, error) {
-  cr := csv.NewReader(r)
-  resrows,err := cr.ReadAll()
-  var res Result
-  if len(resrows) > 0 {
-    res.Header = resrows[0]
-    res.Rows = resrows[1:]
-  }
+	cr := csv.NewReader(r)
+	resrows, err := cr.ReadAll()
+	var res Result
+	if len(resrows) > 0 {
+		res.Header = resrows[0]
+		res.Rows = resrows[1:]
+	}
 	return &res, err
 }
 

@@ -78,6 +78,6 @@ func (r Response) Apply(ctx gin.Context) {
 	}
 	if r.NoContent {
 		// ctx.Response().Status = http.StatusNoContent
-    ctx.Status(http.StatusNoContent)
+		ctx.Status(http.StatusNoContent)
 	}
 }

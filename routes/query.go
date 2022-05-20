@@ -1,7 +1,6 @@
 package routes
 
 import (
-
 	"sql-ui/controller"
 	"sql-ui/services/qrunner"
 
@@ -15,8 +14,8 @@ type (
 	}
 
 	queryData struct {
-		Query       string
-		Errmsg      string
+		Query  string
+		Errmsg string
 		Result *qrunner.Result
 	}
 )
@@ -46,8 +45,8 @@ func (c *query) Post(ctx *gin.Context) {
 	}
 
 	page.Data = queryData{
-		Query:       ctx.PostForm("query"),
-		Errmsg:      errmsg,
+		Query:  ctx.PostForm("query"),
+		Errmsg: errmsg,
 		Result: qr,
 	}
 

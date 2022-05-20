@@ -39,9 +39,8 @@ func (c *Controller) RenderPage(ctx gin.Context, page Page) error {
 	if page.Name == "" {
 		log.Println("page render failed due to missing name")
 		// return echo.NewHTTPError(http.StatusInternalServerError)
-    return errors.New("missing page name")
+		return errors.New("missing page name")
 	}
-
 
 	// Check if this is an HTMX non-boosted request which indicates that only partial
 	// content should be rendered
@@ -84,20 +83,20 @@ func (c *Controller) RenderPage(ctx gin.Context, page Page) error {
 	}
 
 	if err != nil {
-		log.Println ("failed to parse and execute templates:", err)
+		log.Println("failed to parse and execute templates:", err)
 		// return echo.NewHTTPError(http.StatusInternalServerError)
-    ctx.String(http.StatusInternalServerError, "template error")
-    return errors.New("template error")
+		ctx.String(http.StatusInternalServerError, "template error")
+		return errors.New("template error")
 	}
 
 	// Set the status code
 	// ctx.Response().Status = page.StatusCode
-  ctx.Status(page.StatusCode)
+	ctx.Status(page.StatusCode)
 
 	// Set any headers
 	for k, v := range page.Headers {
 		// ctx.Response().Header().Set(k, v)
-    ctx.Header(k, v)
+		ctx.Header(k, v)
 	}
 
 	// Apply the HTMX response, if one
@@ -109,13 +108,12 @@ func (c *Controller) RenderPage(ctx gin.Context, page Page) error {
 	// c.cachePage(ctx, page, buf)
 
 	// return ctx.HTMLBlob(ctx.Response().Status, buf.Bytes())
-  _, err = ctx.Writer.Write(buf.Bytes())
-  if err != nil {
-    log.Println(err)
-  }
-  return err
+	_, err = ctx.Writer.Write(buf.Bytes())
+	if err != nil {
+		log.Println(err)
+	}
+	return err
 }
-
 
 /*
 // Redirect redirects to a given route name with optional route parameters

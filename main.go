@@ -23,18 +23,18 @@ func main() {
 
 	// Start the server
 	// go func() {
-		// srv := http.Server{
-		//     Addr: ":8080",
-		// Addr:         fmt.Sprintf("%s:%d", c.Config.HTTP.Hostname, c.Config.HTTP.Port),
-		// Handler:      c.Web,
-		// ReadTimeout:  c.Config.HTTP.ReadTimeout,
-		// WriteTimeout: c.Config.HTTP.WriteTimeout,
-		// IdleTimeout:  c.Config.HTTP.IdleTimeout,
-		// }
+	// srv := http.Server{
+	//     Addr: ":8080",
+	// Addr:         fmt.Sprintf("%s:%d", c.Config.HTTP.Hostname, c.Config.HTTP.Port),
+	// Handler:      c.Web,
+	// ReadTimeout:  c.Config.HTTP.ReadTimeout,
+	// WriteTimeout: c.Config.HTTP.WriteTimeout,
+	// IdleTimeout:  c.Config.HTTP.IdleTimeout,
+	// }
 
-		if err := c.Web.Run(":8080"); err != http.ErrServerClosed {
-			log.Fatal(err)
-		}
+	if err := c.Web.Run(":8080"); err != http.ErrServerClosed {
+		log.Fatal(err)
+	}
 	// }()
 
 	// Start the scheduler service to queue periodic tasks

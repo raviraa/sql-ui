@@ -22,7 +22,7 @@ type Page struct {
 	Title string
 
 	// Context stores the request context
-  Context gin.Context
+	Context gin.Context
 
 	// ToURL is a function to convert a route name and optional route parameters to a URL
 	ToURL func(name string, params ...interface{}) string
@@ -48,7 +48,6 @@ type Page struct {
 	// The template extension should not be included in this value.
 	Name string
 
-
 	// StatusCode stores the HTTP status code that will be returned
 	StatusCode int
 
@@ -59,24 +58,21 @@ type Page struct {
 		Request  htmx.Request
 		Response *htmx.Response
 	}
-
 }
 
 // NewPage creates and initiatizes a new Page for a given request context
 func NewPage(ctx gin.Context) Page {
 	p := Page{
-		Context:    ctx,
+		Context: ctx,
 		// ToURL:      ctx.Echo().Reverse,
 		// Path:       ctx.Request().URL.Path,
-    Path: ctx.Request.URL.Path,
+		Path:       ctx.Request.URL.Path,
 		URL:        ctx.Request.RequestURI,
 		StatusCode: http.StatusOK,
 		Headers:    make(map[string]string),
 	}
 
-
 	p.HTMX.Request = htmx.GetRequest(ctx)
 
 	return p
 }
-

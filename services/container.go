@@ -1,19 +1,18 @@
 package services
 
 import (
+	"fmt"
 	"log"
-  "fmt"
 
-	"sql-ui/services/qrunner"
 	"sql-ui/config"
+	"sql-ui/services/qrunner"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/xo/usql/drivers/sqlite3"
 )
 
-
 type Container struct {
-  Qrunner *qrunner.Qrunner
+	Qrunner *qrunner.Qrunner
 
 	// Web stores the web framework
 	Web *gin.Engine
@@ -25,30 +24,28 @@ type Container struct {
 	TemplateRenderer *TemplateRenderer
 }
 
-
 func NewContainer() *Container {
 	c := new(Container)
 	c.initWeb()
-  c.initConfig()
+	c.initConfig()
 	c.initTemplateRenderer()
 
-  // TODO remove sqlite import 
-  qr, err := qrunner.New("sqlite:///tmp/tt/db.db")
-  c.Qrunner = qr
-  if err != nil {
-    log.Fatal(err)
-  }
+	// TODO remove sqlite import
+	qr, err := qrunner.New("sqlite:///tmp/tt/db.db")
+	c.Qrunner = qr
+	if err != nil {
+		log.Fatal(err)
+	}
 
-  return c 
+	return c
 }
 
 // Shutdown shuts the Container down and disconnects all connections
 func (c *Container) Shutdown() error {
-  log.Println("shutting db")
-  return c.Qrunner.Close()
-  return nil
+	log.Println("shutting db")
+	return c.Qrunner.Close()
+	return nil
 }
-
 
 // initWeb initializes the web framework
 func (c *Container) initWeb() {

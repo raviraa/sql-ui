@@ -24,12 +24,12 @@ func TestConn(t *testing.T) {
 	require.Contains(t, res, `name,varchar,`)
 	// require.Contains(t, res, `"Name":"val","Type":"INTEGER",`)
 
-  resrows, err := q.Query(context.Background(), "select * from t1")
+	resrows, err := q.Query(context.Background(), "select * from t1")
 	require.Nil(t, err)
 	require.Nil(t, err)
-  fmt.Printf("%+v\n", resrows)
-  require.Equal(t, "name", resrows.Rows[0][1])
-  require.Equal(t, `nine,nine"|"`, resrows.Rows[4][1])
+	fmt.Printf("%+v\n", resrows)
+	require.Equal(t, "name", resrows.Rows[0][1])
+	require.Equal(t, `nine,nine"|"`, resrows.Rows[4][1])
 
 	_, err = q.Query(context.Background(), "select * from t2")
 	// _, err = q.Query(context.Background(), "select count(*) as count from t2")

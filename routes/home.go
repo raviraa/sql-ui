@@ -18,7 +18,7 @@ type (
 )
 
 func (c *home) Get(ctx *gin.Context) {
-	page := controller.NewPage(*ctx)
+	page := controller.NewPage(*ctx, c.Container)
 	page.Layout = "main"
 	page.Name = "home"
 

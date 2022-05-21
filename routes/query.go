@@ -14,38 +14,35 @@ type (
 	}
 
 	queryData struct {
-		Query  string
 		Errmsg string
 		Result *qrunner.Result
 	}
 )
 
 func (c *query) Get(ctx *gin.Context) {
-	page := controller.NewPage(*ctx)
+	page := controller.NewPage(*ctx, c.Container)
 	page.Layout = "main"
 	page.Name = "empty"
 	page.Title = "Query"
-	page.Data = queryData{
-		Query: "select * from t1",
-	}
+	page.Data = queryData{}
 
 	c.RenderPage(*ctx, page)
 }
 
 func (c *query) Post(ctx *gin.Context) {
-	page := controller.NewPage(*ctx)
+	page := controller.NewPage(*ctx, c.Container)
 	page.Layout = "htmx"
 	page.Name = "query-results"
 	page.Title = "Query Results"
 	var errmsg string
+	c.Container.Query = ctx.PostForm("query")
 
-	qr, err := c.Container.Qrunner.Query(ctx.Request.Context(), ctx.PostForm("query"))
+	qr, err := c.Container.Qrunner.Query(ctx.Request.Context(), c.Container.Query)
 	if err != nil {
 		errmsg = err.Error()
 	}
 
 	page.Data = queryData{
-		Query:  ctx.PostForm("query"),
 		Errmsg: errmsg,
 		Result: qr,
 	}

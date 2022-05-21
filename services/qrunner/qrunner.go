@@ -83,12 +83,12 @@ const (
 	ListTables    Metatype = "ListTables"
 )
 
-func (q *Qrunner) Metacmd(ctx context.Context, cmd Metatype, param string) (string, error) {
+func (q *Qrunner) Metacmd(ctx context.Context, cmd Metatype, param string) (*Result, error) {
 	//drivers
 	q.buf.Reset()
 	m, err := drivers.NewMetadataWriter(ctx, q.h.URL(), q.h.DB(), q.buf)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	switch cmd {
 	case DescribeTable:
@@ -96,7 +96,10 @@ func (q *Qrunner) Metacmd(ctx context.Context, cmd Metatype, param string) (stri
 	case ListTables:
 		err = m.ListTables(q.h.URL(), "tvmsE", param, false, false)
 	}
-	return q.buf.String(), err
+	if err != nil {
+		return nil, err
+	}
+	return parseCsv(q.buf)
 }
 
 func (q *Qrunner) Close() error {

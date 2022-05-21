@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"sql-ui/htmx"
+	"sql-ui/services"
 
 	"github.com/gin-gonic/gin"
 	// "github.com/mikestefanello/pagoda/msg"
@@ -23,9 +24,6 @@ type Page struct {
 
 	// Context stores the request context
 	Context gin.Context
-
-	// ToURL is a function to convert a route name and optional route parameters to a URL
-	ToURL func(name string, params ...interface{}) string
 
 	// Path stores the path of the current request
 	Path string
@@ -58,12 +56,15 @@ type Page struct {
 		Request  htmx.Request
 		Response *htmx.Response
 	}
+
+	Container *services.Container
 }
 
 // NewPage creates and initiatizes a new Page for a given request context
-func NewPage(ctx gin.Context) Page {
+func NewPage(ctx gin.Context, container *services.Container) Page {
 	p := Page{
-		Context: ctx,
+		Context:   ctx,
+		Container: container,
 		// ToURL:      ctx.Echo().Reverse,
 		// Path:       ctx.Request().URL.Path,
 		Path:       ctx.Request.URL.Path,

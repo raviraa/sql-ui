@@ -8,7 +8,9 @@ import (
 	"sql-ui/services/qrunner"
 
 	"github.com/gin-gonic/gin"
-	_ "github.com/xo/usql/drivers/sqlite3"
+	// _ "github.com/xo/usql/drivers/sqlite3"
+  _ "sql-ui/internal"
+	// _ "github.com/xo/usql/internal"
 )
 
 type Container struct {
@@ -22,6 +24,9 @@ type Container struct {
 
 	// TemplateRenderer stores a service to easily render and cache templates
 	TemplateRenderer *TemplateRenderer
+
+	// Query is sql entered in textarea
+	Query string
 }
 
 func NewContainer() *Container {
@@ -36,6 +41,9 @@ func NewContainer() *Container {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// TODO load Query from config
+	c.Query = "select * from t1"
 
 	return c
 }

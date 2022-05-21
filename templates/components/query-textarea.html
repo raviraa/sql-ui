@@ -6,10 +6,12 @@
   name="query"
   hx-target="#result"
   hx-trigger="keyup[altKey&&key=='D'] from:body"
-  >{{.Data.Query}}</textarea>
+  >{{.Container.Query}}</textarea>
   <!-- TODO keyboard not working, replace with sql editor
 https://github.com/codemirror/lang-sql/blob/main/test/test-complete.ts
 https://codemirror.net/6/examples/tab/
+
+TODO htmx progress
   -->
 
 <input type="submit"

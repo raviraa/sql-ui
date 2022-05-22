@@ -1,12 +1,8 @@
 {{define "query-textarea"}}
 
 <form  hx-post="/query">
-<textarea rows="3" cols="30"
-  hx-post="/query"
-  name="query"
-  hx-target="#result"
-  hx-trigger="keyup[altKey&&key=='D'] from:body"
-  >{{.Container.Query}}</textarea>
+  <textarea class="textarea" rows="3" cols="30" hx-post="/query" name="query" hx-target="#result"
+    hx-trigger="keyup[altKey&&key=='D'] from:body">{{.Container.Query}}</textarea>
   <!-- TODO keyboard not working, replace with sql editor
 https://github.com/codemirror/lang-sql/blob/main/test/test-complete.ts
 https://codemirror.net/6/examples/tab/
@@ -14,15 +10,8 @@ https://codemirror.net/6/examples/tab/
 TODO htmx progress
   -->
 
-<input type="submit"
-       value="Query"
-  hx-post="/query"
-  hx-target="#result"
-  hx-trigger="click"
-  >
+  <input class="button" type="submit" value="Query" hx-post="/query" hx-target="#result" hx-trigger="click">
 
 </form>
 
-<div id="result">
-</div>
 {{end}}

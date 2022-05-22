@@ -1,0 +1,8 @@
+linters:
+  enable: 
+    - revive
+  presets:
+    - bugs
+    - comment
+
+

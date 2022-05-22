@@ -46,6 +46,12 @@ type Page struct {
 	// The template extension should not be included in this value.
 	Name string
 
+	// HtmxBase is is base layout used in case of htmx requests
+	HtmxBase string
+
+	// TemplateExtra stores extra template names in pages directory that are needed to execute the page
+	TemplateExtra []string
+
 	// StatusCode stores the HTTP status code that will be returned
 	StatusCode int
 
@@ -63,10 +69,9 @@ type Page struct {
 // NewPage creates and initiatizes a new Page for a given request context
 func NewPage(ctx gin.Context, container *services.Container) Page {
 	p := Page{
-		Context:   ctx,
-		Container: container,
-		// ToURL:      ctx.Echo().Reverse,
-		// Path:       ctx.Request().URL.Path,
+		Context:    ctx,
+		Container:  container,
+		HtmxBase:   "htmx",
 		Path:       ctx.Request.URL.Path,
 		URL:        ctx.Request.RequestURI,
 		StatusCode: http.StatusOK,

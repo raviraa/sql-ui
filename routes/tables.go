@@ -16,40 +16,32 @@ type (
 	}
 
 	tablesData struct {
-		Errmsg string
-		Result *qrunner.Result
+		Errmsg      string
+		PageNumPrev int64
+		PageNumNext int64
+		Result      *qrunner.Result
+		// Table name
+		Tname string
+		// base url of page with just name param
+		Url string
 	}
 )
 
-func (c *tables) List(ctx *gin.Context) {
-	page := controller.NewPage(*ctx, c.Container)
-	page.Layout = "main"
-	page.Name = "tables-list"
-	page.Title = "Tables in Schema"
-	page.Data = tablesData{}
-
-  var errmsg string 
-  qr, err := c.Container.Qrunner.Metacmd(ctx.Request.Context(), qrunner.ListTables, "")
-	if err != nil {
-		errmsg = err.Error()
-	}
-	page.Data = queryData{
-		Errmsg: errmsg,
-		Result: qr,
-	}
-
-	c.RenderPage(*ctx, page)
-}
-
-func (c *tables) Describe(ctx *gin.Context) {
+// Meta runs schema commands on qrunner db
+func (c *tables) Meta(ctx *gin.Context) {
 	page := controller.NewPage(*ctx, c.Container)
 	page.Layout = "main"
 	page.Name = "query-results"
-	page.Title = "Schema of Table"
+	page.TemplateExtra = []string{"tables-browse-htmx"}
 	page.Data = tablesData{}
+	metacmd := ctx.Param("metacmd")
+	page.Title = "Schema " + metacmd
+	if metacmd == "ListTables" {
+		page.Name = "tables-list"
+	}
 
-  var errmsg string 
-  qr, err := c.Container.Qrunner.Metacmd(ctx.Request.Context(), qrunner.DescribeTable, ctx.Query("name"))
+	var errmsg string
+	qr, err := c.Container.Qrunner.Metacmd(ctx.Request.Context(), qrunner.Metatype(metacmd), ctx.Query("name"), false)
 	if err != nil {
 		errmsg = err.Error()
 	}
@@ -64,23 +56,52 @@ func (c *tables) Describe(ctx *gin.Context) {
 func (c *tables) Browse(ctx *gin.Context) {
 	page := controller.NewPage(*ctx, c.Container)
 	page.Layout = "main"
-	page.Name = "query-results"
-  tname := ctx.Query("name")
-  pageNum, _ := strconv.ParseInt(ctx.Query("page"),  10, 64)
-  perPage := c.Container.Config.PagerSize
+	page.Name = "tables-browse"
+	page.HtmxBase = "data"
+	page.TemplateExtra = []string{"tables-browse-htmx"}
+	tname := ctx.Query("name")
+	pageNum, _ := strconv.ParseInt(ctx.Query("page"), 10, 64)
+	perPage := c.Container.Config.PagerSize
 	page.Title = "Browse Table " + tname
-  query := fmt.Sprintf("select * from %s limit %v offset %v",
-    tname, perPage, perPage*int(pageNum))
+	query := fmt.Sprintf("select * from %s ", tname)
+	var errmsg string
+	var err error
 
-  var errmsg string 
-	qr, err := c.Container.Qrunner.Query(ctx.Request.Context(),query)
-	if err != nil {
-		errmsg = err.Error()
+	if page.HTMX.Request.TriggerName != "query" {
+		page.HtmxBase = "htmx"
 	}
 
-	page.Data = tablesData{
-    Errmsg: errmsg,
-    Result: qr,
-  }
+	if page.HTMX.Request.TriggerName == "query" {
+		page.Name = "tables-browse-htmx"
+		field := "*text*" //TODO add in ui
+		search := ctx.Query("query")
+		whereq, err := c.Container.Qrunner.QsearchMakeQuery(ctx.Request.Context(), tname, field, search)
+		if err != nil {
+			errmsg = err.Error()
+		}
+		query += " where " + whereq
+	}
+
+	query = fmt.Sprintf("%s limit %v offset %v",
+		query, perPage, perPage*int(pageNum))
+
+	var qr *qrunner.Result
+	if errmsg == "" { // earlier makequery error
+		qr, err = c.Container.Qrunner.Query(ctx.Request.Context(), query, false)
+		if err != nil {
+			errmsg = query + "; " + err.Error()
+		}
+	}
+	tdata := tablesData{
+		Errmsg:      errmsg,
+		Result:      qr,
+		PageNumNext: pageNum + 1,
+		Tname:       tname,
+		Url:         "/tables/browse?name=" + tname,
+	}
+	if pageNum > 0 {
+		tdata.PageNumPrev = pageNum - 1
+	}
+	page.Data = tdata
 	c.RenderPage(*ctx, page)
 }

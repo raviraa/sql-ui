@@ -16,7 +16,7 @@ func BuildRouter(c *services.Container) {
 	// 	Static(config.StaticPrefix, config.StaticDir)
 	// TODO staticdir from embedfs
 	c.Web.Group("").
-		Use(middleware.CacheControl(c.Config.CacheControl)).
+		Use(middleware.CacheControl(config.CacheControl)).
 		Static(config.StaticPrefix, config.StaticDir)
 
 	g := c.Web.Group("")
@@ -27,7 +27,6 @@ func BuildRouter(c *services.Container) {
 
 	// Base controller
 	ctr := controller.NewController(c)
-	// TODO controller
 	userRoutes(c, g, ctr)
 
 }
@@ -35,18 +34,16 @@ func BuildRouter(c *services.Container) {
 // func navRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) {
 func userRoutes(c *services.Container, g *gin.RouterGroup, ctr controller.Controller) {
 
-	home := home{Controller: ctr}
-	g.GET("/", home.Get)
-
 	query := query{Controller: ctr}
-	g.GET("/query", query.Get)
+	g.GET("/", query.Get)
 	g.POST("/query", query.Post)
 
 	tables := tables{ctr}
-	g.GET("/tables/list", tables.List)
-  g.GET("/tables/describe", tables.Describe)
-  g.GET("/tables/browse", tables.Browse)
-	// g.POST("/tables", tables.Post)
+	g.GET("/tables/meta/:metacmd", tables.Meta)
+	g.GET("/tables/browse", tables.Browse)
+
+  history := history{ctr}
+  g.GET("/history", history.Get)
 
 	g.GET("/ping", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "pong")

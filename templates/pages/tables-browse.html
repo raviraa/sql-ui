@@ -1,0 +1,21 @@
+{{define "content"}}
+<hr>
+
+{{if not .Data.Errmsg}}
+<div class="columns">
+  <div class="column is-11">
+    <input name="query" type="text"
+      hx-get="{{.Data.Url}}"
+      hx-trigger="keyup changed delay:500ms"
+      hx-target="#table-result"
+      style="width: 100%"
+      placeholder="Quick Search">
+  </div>
+</div>
+{{end}}
+
+<div id="table-result">
+{{template "data" .}}
+</div>
+
+{{end}}

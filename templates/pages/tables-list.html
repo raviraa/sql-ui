@@ -3,25 +3,35 @@
 {{if .Data.Errmsg}}
 <div class="danger">{{.Data.Errmsg}}</div>
 {{else}}
+
+{{$header := .Data.Result.Header}}
 <div class="table-container">
-<table class="table is-bordered">
-  <thead>
-    <tr>
-      {{range .Data.Result.Header}}
-      <th>{{.}}</th>
+  <table class="table is-bordered">
+    <thead>
+      <tr>
+        {{range .Data.Result.Header}}
+        <th>{{.}}</th>
+        {{end}}
+      </tr>
+    </thead>
+    <tbody>
+      {{range .Data.Result.Rows}}
+      <tr>
+        {{$tbname := ""}}
+        {{range $idx, $val := .}}
+        {{if eq (index $header $idx) "Type"}}
+        <td><a hx-target="#result" hx-get="/tables/meta/DescribeTable?name={{$tbname}}">{{$val}} </a></td>
+        {{else if eq (index $header $idx) "Name"}}
+        {{$tbname = $val}}
+        <td><a hx-target="#result" hx-get="/tables/browse?name={{$val}}">{{$val}} </a></td>
+        {{else}}
+        <td>{{$val}}</td>
+        {{end}}
+        {{end}}
+      </tr>
       {{end}}
-    </tr>
-  </thead>
-  <tbody>
-    {{range .Data.Result.Rows}} 
-    <tr> 
-      {{range .}}
-      <td><a href="/tables/describe?name={{.}}">{{.}}</a></td>
-      {{end}}
-    </tr>
-    {{end}}
-  </tbody>
-</table>
+    </tbody>
+  </table>
 </div>
 {{end}}
 

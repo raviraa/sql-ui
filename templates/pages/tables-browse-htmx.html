@@ -1,0 +1,33 @@
+{{define "data"}}
+{{if .Data.Errmsg}}
+<div class="danger">{{.Data.Errmsg}}</div>
+{{else}}
+<div class="columns">
+  <div class="column is-3">
+    <a hx-target="#table-result" hx-get="{{.Data.Url}}&page={{.Data.PageNumPrev}}">Prev</a>
+    <a hx-target="#table-result" hx-get="{{.Data.Url}}&page={{.Data.PageNumNext}}">Next</a>
+  </div>
+</div>
+<div class="table-container">
+  <table class="query-results table is-bordered">
+    <thead>
+      <tr>
+        {{range .Data.Result.Header}}
+        <th>{{.}}</th>
+        {{end}}
+      </tr>
+    </thead>
+    <tbody>
+      {{range .Data.Result.Rows}}
+      <tr>
+        {{range .}}
+        <td>{{.}}</td>
+        {{end}}
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+</div>
+{{end}}
+
+{{end}}

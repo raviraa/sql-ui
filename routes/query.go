@@ -37,7 +37,7 @@ func (c *query) Post(ctx *gin.Context) {
 	var errmsg string
 	c.Container.Query = ctx.PostForm("query")
 
-	qr, err := c.Container.Qrunner.Query(ctx.Request.Context(), c.Container.Query)
+	qr, err := c.Container.Qrunner.Query(ctx.Request.Context(), c.Container.Query, false)
 	if err != nil {
 		errmsg = err.Error()
 	}

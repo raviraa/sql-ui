@@ -9,10 +9,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	// _ "github.com/xo/usql/drivers/sqlite3"
-  _ "sql-ui/internal"
+	_ "sql-ui/internal"
 	// _ "github.com/xo/usql/internal"
 )
 
+// Container keep the state of application
 type Container struct {
 	Qrunner *qrunner.Qrunner
 
@@ -29,6 +30,7 @@ type Container struct {
 	Query string
 }
 
+// NewContainer initializes web, templates etc.
 func NewContainer() *Container {
 	c := new(Container)
 	c.initWeb()
@@ -52,11 +54,13 @@ func NewContainer() *Container {
 func (c *Container) Shutdown() error {
 	log.Println("shutting db")
 	return c.Qrunner.Close()
-	return nil
 }
 
 // initWeb initializes the web framework
 func (c *Container) initWeb() {
+	if !config.AppDebug {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	c.Web = gin.Default()
 }
 

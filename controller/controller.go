@@ -9,6 +9,7 @@ import (
 
 	// "sql-ui/context"
 	// "sql-ui/htmx"
+	"sql-ui/htmx"
 	"sql-ui/services"
 
 	"github.com/gin-gonic/gin"
@@ -50,16 +51,24 @@ func (c *Controller) RenderPage(ctx gin.Context, page Page) error {
 		// 1. The base htmx template which omits the layout and only includes the content template
 		// 2. The content template specified in Page.Name
 		// 3. All templates within the components directory
-		// Also included is the function map provided by the funcmap package
+		// 4. All templates from page.TemplateExtra
+		templs := []string{
+			page.HtmxBase,
+			fmt.Sprintf("pages/%s", page.Name),
+		}
+		for _, tmpl := range page.TemplateExtra {
+			templs = append(templs, fmt.Sprintf("pages/%s", tmpl))
+		}
+		if ctx.Request.Method == "GET" {
+        // HeaderPush instructs browser to push url to history stack
+			ctx.Header(htmx.HeaderPush, ctx.Request.URL.String())
+		}
 		buf, err = c.Container.TemplateRenderer.
 			Parse().
 			Group("page:htmx").
 			Key(page.Name).
-			Base("htmx").
-			Files(
-				"htmx",
-				fmt.Sprintf("pages/%s", page.Name),
-			).
+			Base(page.HtmxBase).
+			Files(templs...).
 			Directories("components").
 			Execute(page)
 	} else {
@@ -68,16 +77,20 @@ func (c *Controller) RenderPage(ctx gin.Context, page Page) error {
 		// 1. The layout/base template specified in Page.Layout
 		// 2. The content template specified in Page.Name
 		// 3. All templates within the components directory
-		// Also included is the function map provided by the funcmap package
+		// 4. All templates from page.TemplateExtra
+		templs := []string{
+			fmt.Sprintf("layouts/%s", page.Layout),
+			fmt.Sprintf("pages/%s", page.Name),
+		}
+		for _, tmpl := range page.TemplateExtra {
+			templs = append(templs, fmt.Sprintf("pages/%s", tmpl))
+		}
 		buf, err = c.Container.TemplateRenderer.
 			Parse().
 			Group("page").
 			Key(page.Name).
 			Base(page.Layout).
-			Files(
-				fmt.Sprintf("layouts/%s", page.Layout),
-				fmt.Sprintf("pages/%s", page.Name),
-			).
+			Files(templs...).
 			Directories("components").
 			Execute(page)
 	}

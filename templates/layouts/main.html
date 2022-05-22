@@ -1,22 +1,33 @@
 <!DOCTYPE html>
 <html lang="en" style="height:100%;">
-    <head>
-        {{template "head" .}}
-    </head>
-    <body class="has-background-light" style="min-height:100%;">
-        <nav class="navbar is-dark">
-            <div class="container">
-                <div class="navbar-brand" hx-boost="true">
-                    <a href="/" class="navbar-item"> 🌐</a>
-                    <a href="/query" class="navbar-item">Query</a>
-                    <a href="/tables/list" class="navbar-item">Tables</a>
-                </div>
-            </div>
-        </nav>
 
-        <div class="container mt-5">
-            <div class="columns">
-              <!-- 
+<head>
+  {{template "head" .}}
+</head>
+
+<body class="has-background-light" style="min-height:100%;">
+  <nav class="navbar is-dark">
+    <div class="container">
+        <div class="navbar-brand">
+          <a href="/" 
+            hx-get="/" 
+            hx-target="#result"
+            class="navbar-item"> 🌐</a>
+        <a href="/tables/meta/ListTables"
+            hx-get="/tables/meta/ListTables"
+            hx-target="#result"
+            class="navbar-item">Tables</a>
+        <a href="/tables/meta/ListDrivers"
+            hx-get="/tables/meta/ListDrivers"
+            hx-target="#result"
+            class="navbar-item">Drivers</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container mt-5">
+    <div class="columns">
+      <!-- 
                 <div class="column is-2">
                     <aside class="menu" hx-boost="true">
                         <p class="menu-label">General</p>
@@ -27,20 +38,22 @@
                     </aside>
                 </div>
 -->
-                <div class="column is-10">
-                    <div class="box">
-                        {{- if .Title}}
-                            <h5>{{.Title}}</h5>
-                        {{- end}}
+      <div class="column is-10" hx-boost="true">
+        <div class="box">
+          {{- if .Title}}
+          <h5>{{.Title}}</h5>
+          {{- end}}
 
-                        {{template "query-textarea" .}}
-                        {{template "content" .}}
-                    </div>
-                </div>
-            </div>
+          {{template "query-textarea" .}}
+<div id="result">
+          {{template "content" .}}
+</div>
         </div>
+      </div>
+    </div>
+  </div>
 
-      {{template "footer" .}}
-    </body>
+  {{template "footer" .}}
+</body>
+
 </html>
-

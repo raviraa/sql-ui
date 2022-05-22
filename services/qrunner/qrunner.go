@@ -4,12 +4,17 @@ import (
 	"bytes"
 	"context"
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"os/user"
+	"sort"
+	"strings"
+	"sync"
 
+	"github.com/xo/dburl"
 	"github.com/xo/usql/drivers"
 	"github.com/xo/usql/env"
 	"github.com/xo/usql/handler"
@@ -19,18 +24,22 @@ import (
 )
 
 type Qrunner struct {
-	h   *handler.Handler
-	buf *bytes.Buffer
+	h      *handler.Handler
+	buf    *bytes.Buffer
+	mu     *sync.Mutex
 }
+
 
 type Result struct {
 	Rows   [][]string
 	Header []string
+  ResJson string
 }
+
+var QrunnerNotInitialized = errors.New("not connected to database")
 
 func New(dsn string) (*Qrunner, error) {
 	env.Pset("format", "csv")
-	fmt.Printf("%+v\n", env.Pall())
 	wd, err := os.Getwd()
 	if err != nil {
 		return nil, err
@@ -49,11 +58,24 @@ func New(dsn string) (*Qrunner, error) {
 	if err := h.Open(ctx, dsn); err != nil {
 		return nil, err
 	}
-	q := &Qrunner{h, &bytes.Buffer{}}
+	q := &Qrunner{
+		h:      h,
+		buf:    &bytes.Buffer{},
+		mu:     &sync.Mutex{},
+	}
 	return q, nil
 }
 
-func (q *Qrunner) Query(ctx context.Context, sqlstr string) (*Result, error) {
+func (q *Qrunner) Query(ctx context.Context, sqlstr string, outjson bool) (*Result, error) {
+	if q == nil {
+		return nil, QrunnerNotInitialized
+	}
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	if outjson {
+		env.Pset("format", "json")
+		defer env.Pset("format", "csv")
+	}
 	q.buf.Reset()
 	prefix := stmt.FindPrefix(sqlstr, true, true, true)
 	log.Println("sql", prefix, sqlstr)
@@ -62,7 +84,82 @@ func (q *Qrunner) Query(ctx context.Context, sqlstr string) (*Result, error) {
 	if err != nil {
 		return nil, err
 	}
+  if outjson {
+    return &Result{ResJson: q.buf.String()},nil
+  }
 	return parseCsv(q.buf)
+}
+
+type Metatype string
+
+const (
+	DescribeTable Metatype = "DescribeTable"
+	ListTables    Metatype = "ListTables"
+	ListDrivers   Metatype = "ListDrivers"
+)
+
+func (q *Qrunner) Metacmd(ctx context.Context, cmd Metatype, param string, outjson bool) (*Result, error) {
+	if q == nil {
+		return nil, QrunnerNotInitialized
+	}
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	if outjson {
+		env.Pset("format", "json")
+		defer env.Pset("format", "csv")
+	}
+	q.buf.Reset()
+	m, err := drivers.NewMetadataWriter(ctx, q.h.URL(), q.h.DB(), q.buf)
+	if err != nil {
+		return nil, err
+	}
+	switch cmd {
+	case DescribeTable:
+		err = m.DescribeTableDetails(q.h.URL(), param, false, false)
+	case ListTables:
+		err = m.ListTables(q.h.URL(), "tvmsE", param, false, false)
+	case ListDrivers:
+		available := drivers.Available()
+		fmt.Fprintln(q.buf, "Name,DSN Alias")
+		drvmap := make(map[string]string) // only get unique
+		drvkeys := make([]string, 0)
+		for drv := range available {
+			_, aliases := dburl.SchemeDriverAndAliases(drv)
+			drvmap[drv] = strings.Join(aliases, " ") + drvmap[drv]
+			drvkeys = append(drvkeys, drv)
+		}
+		sort.Strings(drvkeys)
+		for _, drv := range drvkeys {
+			fmt.Fprintf(q.buf, "%s,%s\n", drv, drvmap[drv])
+		}
+	default:
+		err = errors.New("unknown meta command: " + string(cmd))
+	}
+	if err != nil {
+		return nil, err
+	}
+  if outjson {
+    return &Result{ResJson: q.buf.String()},nil
+  }
+	return parseCsv(q.buf)
+}
+
+func (q *Qrunner) QsearchMakeQuery(ctx context.Context, tblname, field, search string) (string, error) {
+	if q == nil {
+		return "", QrunnerNotInitialized
+	}
+  tbl, err := q.findTable(ctx, tblname)
+  if err !=nil {
+    return "", err
+  }
+	return tbl.makeQuery(field, search), nil
+}
+
+func (q *Qrunner) Close() error {
+	if q == nil {
+		return QrunnerNotInitialized
+	}
+	return q.h.Close()
 }
 
 func parseCsv(r io.Reader) (*Result, error) {
@@ -74,34 +171,4 @@ func parseCsv(r io.Reader) (*Result, error) {
 		res.Rows = resrows[1:]
 	}
 	return &res, err
-}
-
-type Metatype string
-
-const (
-	DescribeTable Metatype = "DescribeTable"
-	ListTables    Metatype = "ListTables"
-)
-
-func (q *Qrunner) Metacmd(ctx context.Context, cmd Metatype, param string) (*Result, error) {
-	//drivers
-	q.buf.Reset()
-	m, err := drivers.NewMetadataWriter(ctx, q.h.URL(), q.h.DB(), q.buf)
-	if err != nil {
-		return nil, err
-	}
-	switch cmd {
-	case DescribeTable:
-		err = m.DescribeTableDetails(q.h.URL(), param, false, false)
-	case ListTables:
-		err = m.ListTables(q.h.URL(), "tvmsE", param, false, false)
-	}
-	if err != nil {
-		return nil, err
-	}
-	return parseCsv(q.buf)
-}
-
-func (q *Qrunner) Close() error {
-	return q.h.Close()
 }

@@ -1,0 +1,52 @@
+{{define "content"}}
+<h4 class="title is-4">Connect to database</h4> 
+
+{{if .Data.Errmsg}}
+<div class="is-danger notification">{{.Data.Errmsg}}</div>
+{{end}}
+
+{{if .Data.ConnectedDSN  }}
+<div class="is-success notification">Database successfully {{.Data.ConnectedDSN }}</div>
+<form>
+  <input type="hidden" name="disconnect" value="true" >
+  <input type="submit" class="button" value="Disconnect" 
+    hx-post="/connect"
+    hx-target="#result" hx-trigger="click">
+</form>
+
+{{else}}
+<form hx-post="/connect">
+  <div class="field">
+    <label class="label" for="dsn"> Database DSN.
+      <a style="font-size: 10px" href="https://github.com/xo/usql#connecting-to-databases" target="_blank">Format: postgres://user:pass@localhost/db</a></label>
+    <input class="control" name="dsn" 
+      value="{{.Data.DSN}}"
+      placeholder="Database DSN..."
+      style="width: 90%"
+    >
+  </div>
+
+  <input class="button" type="submit" value="Connect"
+    hx-post="/connect" hx-target="#result" hx-trigger="click">
+</form>
+
+{{if .Data.DSNsRecent}}
+<hr>
+<div class="columns is-centered">
+  <h5 class="is-5 column">Connection History</h5>
+</div>
+  {{range .Data.DSNsRecent }}
+  <hr>
+  <div class="columns">
+  <div class="column is-10">{{.}}</div>
+  <form class="column is-1" hx-post="/connect">
+    <input type="hidden" name="dsn" value="{{.}}" >
+    <input class="button" type="submit" value="Connect"
+    hx-post="/connect" hx-target="#result" hx-trigger="click">
+  </form>
+  </div>
+  {{end}}
+{{end}}
+
+{{end}}
+{{end}}

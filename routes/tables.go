@@ -16,6 +16,7 @@ type (
 	}
 
 	tablesData struct {
+		Metacmd     string
 		Errmsg      string
 		PageNumPrev int64
 		PageNumNext int64
@@ -29,7 +30,7 @@ type (
 
 // Meta runs schema commands on qrunner db
 func (c *tables) Meta(ctx *gin.Context) {
-	page := controller.NewPage(*ctx, c.Container)
+	page := controller.NewPage(ctx, c.Container)
 	page.Layout = "main"
 	page.Name = "query-results"
 	page.TemplateExtra = []string{"tables-browse-htmx"}
@@ -39,22 +40,24 @@ func (c *tables) Meta(ctx *gin.Context) {
 	if metacmd == "ListTables" {
 		page.Name = "tables-list"
 	}
-
-	var errmsg string
-	qr, err := c.Container.Qrunner.Metacmd(ctx.Request.Context(), qrunner.Metatype(metacmd), ctx.Query("name"), false)
+	var err error
+	td := tablesData{
+		Metacmd: metacmd,
+	}
+	if metacmd == "ListDrivers" {
+		td.Result, err = qrunner.Drivers()
+	} else {
+		td.Result, err = c.Container.Qrunner.Metacmd(ctx.Request.Context(), qrunner.Metatype(metacmd), ctx.Query("name"), false)
+	}
 	if err != nil {
-		errmsg = err.Error()
+		td.Errmsg = err.Error()
 	}
-	page.Data = queryData{
-		Errmsg: errmsg,
-		Result: qr,
-	}
-
-	c.RenderPage(*ctx, page)
+	page.Data = td
+	c.RenderPage(ctx, page)
 }
 
 func (c *tables) Browse(ctx *gin.Context) {
-	page := controller.NewPage(*ctx, c.Container)
+	page := controller.NewPage(ctx, c.Container)
 	page.Layout = "main"
 	page.Name = "tables-browse"
 	page.HtmxBase = "data"
@@ -68,12 +71,13 @@ func (c *tables) Browse(ctx *gin.Context) {
 	var err error
 
 	if page.HTMX.Request.TriggerName != "query" {
+		// navigation from other pages, render content template instead of data
 		page.HtmxBase = "htmx"
 	}
 
 	if page.HTMX.Request.TriggerName == "query" {
 		page.Name = "tables-browse-htmx"
-		field := "*text*" //TODO add in ui
+		field := "*text*" // TODO add in ui
 		search := ctx.Query("query")
 		whereq, err := c.Container.Qrunner.QsearchMakeQuery(ctx.Request.Context(), tname, field, search)
 		if err != nil {
@@ -103,5 +107,5 @@ func (c *tables) Browse(ctx *gin.Context) {
 		tdata.PageNumPrev = pageNum - 1
 	}
 	page.Data = tdata
-	c.RenderPage(*ctx, page)
+	c.RenderPage(ctx, page)
 }

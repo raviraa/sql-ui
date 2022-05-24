@@ -32,33 +32,30 @@ type Container struct {
 
 // NewContainer initializes web, templates etc.
 func NewContainer() *Container {
+	log.SetFlags(log.Lshortfile)
 	c := new(Container)
 	c.initWeb()
 	c.initConfig()
 	c.initTemplateRenderer()
-
-	// TODO remove sqlite import
-	qr, err := qrunner.New("sqlite:///tmp/tt/db.db")
-	c.Qrunner = qr
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// TODO load Query from config
-	c.Query = "select * from t1"
+  c.Query = c.Config.GetHistEntryRecent()
 
 	return c
 }
 
 // Shutdown shuts the Container down and disconnects all connections
 func (c *Container) Shutdown() error {
-	log.Println("shutting db")
+	if config.AppEnvironment != config.EnvTest {
+		log.Println("Stopping server, and saving conf")
+		if err := c.Config.SaveConf(); err != nil {
+			log.Println("error saving conf: ", err)
+		}
+	}
 	return c.Qrunner.Close()
 }
 
 // initWeb initializes the web framework
 func (c *Container) initWeb() {
-	if !config.AppDebug {
+	if config.AppEnvironment != config.EnvDev {
 		gin.SetMode(gin.ReleaseMode)
 	}
 	c.Web = gin.Default()

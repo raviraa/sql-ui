@@ -2,7 +2,6 @@ package controller
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -32,7 +31,7 @@ func NewController(c *services.Container) Controller {
 }
 
 // RenderPage renders a Page as an HTTP response
-func (c *Controller) RenderPage(ctx gin.Context, page Page) error {
+func (c *Controller) RenderPage(ctx *gin.Context, page Page) {
 	var buf *bytes.Buffer
 	var err error
 
@@ -40,7 +39,8 @@ func (c *Controller) RenderPage(ctx gin.Context, page Page) error {
 	if page.Name == "" {
 		log.Println("page render failed due to missing name")
 		// return echo.NewHTTPError(http.StatusInternalServerError)
-		return errors.New("missing page name")
+		// return errors.New("missing page name")
+		return
 	}
 
 	// Check if this is an HTMX non-boosted request which indicates that only partial
@@ -60,7 +60,7 @@ func (c *Controller) RenderPage(ctx gin.Context, page Page) error {
 			templs = append(templs, fmt.Sprintf("pages/%s", tmpl))
 		}
 		if ctx.Request.Method == "GET" {
-        // HeaderPush instructs browser to push url to history stack
+			// HeaderPush instructs browser to push url to history stack
 			ctx.Header(htmx.HeaderPush, ctx.Request.URL.String())
 		}
 		buf, err = c.Container.TemplateRenderer.
@@ -99,7 +99,8 @@ func (c *Controller) RenderPage(ctx gin.Context, page Page) error {
 		log.Println("failed to parse and execute templates:", err)
 		// return echo.NewHTTPError(http.StatusInternalServerError)
 		ctx.String(http.StatusInternalServerError, "template error")
-		return errors.New("template error")
+		// return errors.New("template error")
+		return
 	}
 
 	// Set the status code
@@ -125,7 +126,6 @@ func (c *Controller) RenderPage(ctx gin.Context, page Page) error {
 	if err != nil {
 		log.Println(err)
 	}
-	return err
 }
 
 /*

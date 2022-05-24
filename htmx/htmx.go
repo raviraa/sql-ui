@@ -45,7 +45,7 @@ type (
 )
 
 // GetRequest extracts HTMX data from the request
-func GetRequest(ctx gin.Context) Request {
+func GetRequest(ctx *gin.Context) Request {
 	return Request{
 		Enabled:     ctx.Request.Header.Get(HeaderRequest) == "true",
 		Boosted:     ctx.Request.Header.Get(HeaderBoosted) == "true",
@@ -57,7 +57,7 @@ func GetRequest(ctx gin.Context) Request {
 }
 
 // Apply applies data from a Response to a server response
-func (r Response) Apply(ctx gin.Context) {
+func (r Response) Apply(ctx *gin.Context) {
 	if r.Push != "" {
 		ctx.Header(HeaderPush, r.Push)
 	}

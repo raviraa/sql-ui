@@ -1,17 +1,40 @@
 {{define "query-textarea"}}
 
 <form  hx-post="/query">
-  <textarea class="textarea" rows="3" cols="30" hx-post="/query" name="query" hx-target="#result"
+  <div class="columns">
+    <textarea id="query-txarea" class="textarea" rows="3" cols="30" hx-post="/query" name="query" hx-target="#result"
     hx-trigger="keyup[altKey&&key=='D'] from:body">{{.Container.Query}}</textarea>
-  <!-- TODO keyboard not working, replace with sql editor
+  </div>
+  <!-- TODO  replace with sql editor
 https://github.com/codemirror/lang-sql/blob/main/test/test-complete.ts
 https://codemirror.net/6/examples/tab/
-
-TODO htmx progress
   -->
 
-  <input class="button" type="submit" value="Query" hx-post="/query" hx-target="#result" hx-trigger="click">
+<div class="columns">
 
+  <div class="column is-2">
+  <input id="query-submit-btn" 
+    class="button" type="submit"
+    title="Run Query. Ctrl+Enter in textbox will also run the query"
+    value="Query" 
+    hx-indicator="#indicator"
+    hx-post="/query" hx-target="#result" hx-trigger="click">
+   </div>
+  <div class="column is-1">
+    <div  
+       class="title htmx-indicator" id="indicator">🟢</div>
+  </div>
+</div>
 </form>
+
+<script>
+function querykeyup(e) {
+  if(e.key == "Enter" && e.ctrlKey == true) {
+    document.getElementById("query-submit-btn").click();
+  }
+}
+document.getElementById("query-txarea").addEventListener("keyup", querykeyup);
+
+</script>
 
 {{end}}

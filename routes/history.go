@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"log"
+	"sql-ui/config"
 	"sql-ui/controller"
 
 	"github.com/gin-gonic/gin"
@@ -13,16 +13,17 @@ type (
 	}
 
 	historyData struct {
-		Title string
+    Entries []config.HistEntry
 	}
 )
 
 func (c *history) Get(ctx *gin.Context) {
-	page := controller.NewPage(*ctx, c.Container)
+	page := controller.NewPage(ctx, c.Container)
 	page.Layout = "main"
 	page.Name = "history"
+  page.Data =  historyData{
+    Entries: c.Container.Config.GetHistEntries(),
+  }
 
-	log.Println(c.Container.Config.SaveConf())
-
-	c.RenderPage(*ctx, page)
+	c.RenderPage(ctx, page)
 }

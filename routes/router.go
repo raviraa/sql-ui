@@ -12,6 +12,7 @@ import (
 
 func BuildRouter(c *services.Container) {
 
+  gin.SetMode(gin.ReleaseMode)
 	// c.Web.Group("", middleware.CacheControl(c.Config.Cache.Expiration.StaticFile)).
 	// 	Static(config.StaticPrefix, config.StaticDir)
 	// TODO staticdir from embedfs
@@ -44,6 +45,10 @@ func userRoutes(c *services.Container, g *gin.RouterGroup, ctr controller.Contro
 
   history := history{ctr}
   g.GET("/history", history.Get)
+
+  connect := connect{ctr}
+  g.GET("/connect", connect.Get)
+  g.POST("/connect", connect.Post)
 
 	g.GET("/ping", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "pong")

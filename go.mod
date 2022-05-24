@@ -3,8 +3,10 @@ module sql-ui
 go 1.18
 
 require (
+	github.com/PuerkitoBio/goquery v1.8.0
 	github.com/gin-gonic/gin v1.7.7
 	github.com/joeshaw/envdecode v0.0.0-20200121155833-099f1fc765bd
+	github.com/pelletier/go-toml v1.9.5
 	github.com/stretchr/testify v1.7.0
 	github.com/xo/dburl v0.9.1
 	github.com/xo/usql v0.10.0
@@ -28,6 +30,7 @@ require (
 	github.com/alecthomas/chroma v0.10.0 // indirect
 	github.com/alexbrainman/odbc v0.0.0-20211220213544-9c9a2e61c5e2 // indirect
 	github.com/amsokol/ignite-go-client v0.12.2 // indirect
+	github.com/andybalholm/cascadia v1.3.1 // indirect
 	github.com/apache/arrow/go/arrow v0.0.0-20211112161151-bc219186db40 // indirect
 	github.com/apache/calcite-avatica-go/v5 v5.0.0 // indirect
 	github.com/apache/thrift v0.15.0 // indirect
@@ -148,7 +151,6 @@ require (
 	github.com/nakagami/firebirdsql v0.9.4 // indirect
 	github.com/nathan-fiscaletti/consolesize-go v0.0.0-20220204101620-317176b6684d // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
-	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pierrec/lz4/v4 v4.1.14 // indirect
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8 // indirect
 	github.com/pkg/errors v0.9.1 // indirect

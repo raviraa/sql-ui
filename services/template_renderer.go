@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"log"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -64,10 +65,10 @@ func NewTemplateRenderer(cfg *config.Config) *TemplateRenderer {
 
 	// Gets the complete templates directory path
 	// This is needed in case this is called from a package outside of main, such as within tests
-	// TODO embed templates
 	_, b, _, _ := runtime.Caller(0)
 	d := path.Join(path.Dir(b))
 	t.templatesPath = filepath.Join(filepath.Dir(d), config.TemplateDir)
+	log.Println("templ path", t.templatesPath)
 
 	return t
 }
@@ -142,6 +143,7 @@ func (t *TemplateRenderer) parse(build *templateBuild) (*TemplateParsed, error) 
 			}
 		}
 
+		log.Printf("tmpl build files %#v", build)
 		// Store the template so this process only happens once
 		tp = &TemplateParsed{
 			Template: parsed,

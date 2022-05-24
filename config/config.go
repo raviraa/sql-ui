@@ -1,10 +1,12 @@
 package config
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path"
+	"sort"
 	"time"
 
 	toml "github.com/pelletier/go-toml"
@@ -25,7 +27,14 @@ const (
 	CacheControl = time.Hour * 24
 )
 
-var AppDebug = false
+type Environment string
+
+var (
+	EnvTest Environment = "test"
+	EnvDev  Environment = "dev"
+	EnvProd Environment = "prod"
+)
+var AppEnvironment = EnvDev
 
 type HistEntry struct {
 	Query    string
@@ -35,22 +44,24 @@ type HistEntry struct {
 
 // Config stores complete configuration
 type Config struct {
-	PagerSize    int         `comment:"Number of rows in each page when browsing tables"`
-	HistEntries  []HistEntry `comment:"History of queries run"`
-	HistEntryMax int         `comment:"Maximum number of HistEntries to keep"`
+	PagerSize     int         `comment:"Number of rows in each page when browsing tables"`
+	HistEntries   []HistEntry `comment:"History of queries run"`
+	HistEntryMax  int         `comment:"Maximum number of HistEntries to keep"`
+	ConnectDSN    []string    `comment:"History of connected database server dsn"`
+	ConnectDSNMax int         `comment:"Maximum number of DSN entries to keep"`
 
 	// histEntriesMap keeps track of HistEntries in memory by Query
-	histEntriesMap map[string]HistEntry
+	histEntriesMap map[string]*HistEntry
 }
 
-// TODO toml config, history
 
 // GetConfig loads and returns configuration
 func GetConfig() (Config, error) {
 	var cfg Config = Config{
 		PagerSize:      20,
-		HistEntryMax:   9,
-		histEntriesMap: make(map[string]HistEntry),
+		HistEntryMax:   99,
+		ConnectDSNMax:  99,
+		histEntriesMap: make(map[string]*HistEntry),
 	}
 	err := cfg.readConf()
 	if err != nil {
@@ -73,7 +84,12 @@ func (c *Config) readConf() error {
 	return nil
 }
 
+var confLocationStr string
+
 func confLocation() string {
+	if confLocationStr != "" {
+		return confLocationStr
+	}
 	confdir, err := os.UserConfigDir()
 	if err != nil {
 		log.Println("configdir error: ", err)
@@ -91,15 +107,98 @@ func (c *Config) SaveConf() error {
 		log.Println(err)
 		return err
 	}
+	c.syncHistEntryMap()
 	enc := toml.NewEncoder(f)
-
 	return enc.Encode(*c)
 }
 
 func (c *Config) AddHistEntry(query string) {
+	he, ok := c.histEntriesMap[query]
+	if ok {
+		he.RunCount += 1
+		he.LastRun = time.Now()
+	} else {
+		c.histEntriesMap[query] = &HistEntry{
+			Query:    query,
+			LastRun:  time.Now(),
+			RunCount: 1,
+		}
+	}
+}
+
+func (c *Config)GetHistEntryRecent() string {
+  hentries := c.GetHistEntries()
+  if len(hentries) > 0 {
+    return hentries[0].Query
+  }
+  return ""
+}
+
+func (c *Config) GetHistEntries() []HistEntry {
+	c.syncHistEntryMap()
+  hentries := c.HistEntries
+	sort.Slice(hentries, func(i, j int) bool {
+		if hentries[i].RunCount == hentries[j].RunCount {
+			return hentries[i].LastRun.Before(hentries[j].LastRun)
+		}
+		return hentries[i].RunCount < hentries[j].RunCount
+	})
+	return hentries
 }
 
 func (c *Config) makeHistEntryMap() {
-	// for _, he := range c.HistEntries {
+	for idx := range c.HistEntries {
+		c.histEntriesMap[c.HistEntries[idx].Query] = &c.HistEntries[idx]
+	}
+}
 
+func (h HistEntry) String() string {
+	return fmt.Sprintf("{%v;%v;%v}", h.RunCount, h.LastRun.UnixMicro(), h.Query)
+}
+
+func (c *Config) syncHistEntryMap() {
+	hentries := make([]HistEntry, 0)
+	for _, he := range c.histEntriesMap {
+		hentries = append(hentries, *he)
+	}
+	sort.Slice(hentries, func(i, j int) bool {
+		if hentries[i].RunCount == hentries[j].RunCount {
+			return hentries[i].LastRun.Before(hentries[j].LastRun)
+		}
+		return hentries[i].RunCount < hentries[j].RunCount
+	})
+	if len(hentries) > c.HistEntryMax {
+		hentries = hentries[len(hentries)-c.HistEntryMax:]
+	}
+	c.HistEntries = hentries
+}
+
+func (c *Config) AddDSN(dsn string) {
+	newdsns := []string{}
+	for _, histdsn := range c.ConnectDSN {
+		// Remove from history and add at the end
+		if dsn != histdsn {
+			newdsns = append(newdsns, histdsn)
+		}
+	}
+	newdsns = append(newdsns, dsn)
+	if len(newdsns) > c.ConnectDSNMax {
+		newdsns = newdsns[len(newdsns)-c.ConnectDSNMax:]
+	}
+	c.ConnectDSN = newdsns
+}
+
+func (c *Config) DSNRecent() string {
+	if len(c.ConnectDSN) == 0 {
+		return ""
+	}
+	return c.ConnectDSN[len(c.ConnectDSN)-1]
+}
+
+func (c *Config) DSNsRecent() []string {
+	dsns := []string{}
+	for i := len(c.ConnectDSN) - 1; i >= 0; i-- {
+		dsns = append(dsns, c.ConnectDSN[i])
+	}
+	return dsns
 }

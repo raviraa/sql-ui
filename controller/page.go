@@ -23,7 +23,7 @@ type Page struct {
 	Title string
 
 	// Context stores the request context
-	Context gin.Context
+	Context *gin.Context
 
 	// Path stores the path of the current request
 	Path string
@@ -67,7 +67,7 @@ type Page struct {
 }
 
 // NewPage creates and initiatizes a new Page for a given request context
-func NewPage(ctx gin.Context, container *services.Container) Page {
+func NewPage(ctx *gin.Context, container *services.Container) Page {
 	p := Page{
 		Context:    ctx,
 		Container:  container,

@@ -1,4 +1,11 @@
 {{define "content"}}
-<h4>History</h4>
+<h4 class="title">History</h4>
+{{range .Data.Entries}}
+<hr>
+<div class="">
+  <span class="tag is-info">{{.RunCount}}</span>
+  {{.Query}}
+</div>
+{{end}}
 
 {{end}}

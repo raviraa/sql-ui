@@ -24,16 +24,15 @@ import (
 )
 
 type Qrunner struct {
-	h      *handler.Handler
-	buf    *bytes.Buffer
-	mu     *sync.Mutex
+	h   *handler.Handler
+	buf *bytes.Buffer
+	mu  *sync.Mutex
 }
 
-
 type Result struct {
-	Rows   [][]string
-	Header []string
-  ResJson string
+	Rows    [][]string
+	Header  []string
+	ResJson string
 }
 
 var QrunnerNotInitialized = errors.New("not connected to database")
@@ -59,11 +58,18 @@ func New(dsn string) (*Qrunner, error) {
 		return nil, err
 	}
 	q := &Qrunner{
-		h:      h,
-		buf:    &bytes.Buffer{},
-		mu:     &sync.Mutex{},
+		h:   h,
+		buf: &bytes.Buffer{},
+		mu:  &sync.Mutex{},
 	}
 	return q, nil
+}
+
+func (q *Qrunner) Dsn() string {
+	if q == nil {
+		return ""
+	}
+	return q.h.URL().DSN
 }
 
 func (q *Qrunner) Query(ctx context.Context, sqlstr string, outjson bool) (*Result, error) {
@@ -84,9 +90,9 @@ func (q *Qrunner) Query(ctx context.Context, sqlstr string, outjson bool) (*Resu
 	if err != nil {
 		return nil, err
 	}
-  if outjson {
-    return &Result{ResJson: q.buf.String()},nil
-  }
+	if outjson {
+		return &Result{ResJson: q.buf.String()}, nil
+	}
 	return parseCsv(q.buf)
 }
 
@@ -95,7 +101,7 @@ type Metatype string
 const (
 	DescribeTable Metatype = "DescribeTable"
 	ListTables    Metatype = "ListTables"
-	ListDrivers   Metatype = "ListDrivers"
+	ListDatabases Metatype = "ListDatabases"
 )
 
 func (q *Qrunner) Metacmd(ctx context.Context, cmd Metatype, param string, outjson bool) (*Result, error) {
@@ -118,29 +124,17 @@ func (q *Qrunner) Metacmd(ctx context.Context, cmd Metatype, param string, outjs
 		err = m.DescribeTableDetails(q.h.URL(), param, false, false)
 	case ListTables:
 		err = m.ListTables(q.h.URL(), "tvmsE", param, false, false)
-	case ListDrivers:
-		available := drivers.Available()
-		fmt.Fprintln(q.buf, "Name,DSN Alias")
-		drvmap := make(map[string]string) // only get unique
-		drvkeys := make([]string, 0)
-		for drv := range available {
-			_, aliases := dburl.SchemeDriverAndAliases(drv)
-			drvmap[drv] = strings.Join(aliases, " ") + drvmap[drv]
-			drvkeys = append(drvkeys, drv)
-		}
-		sort.Strings(drvkeys)
-		for _, drv := range drvkeys {
-			fmt.Fprintf(q.buf, "%s,%s\n", drv, drvmap[drv])
-		}
+	case ListDatabases:
+		err = m.ListAllDbs(q.h.URL(), "", false)
 	default:
 		err = errors.New("unknown meta command: " + string(cmd))
 	}
 	if err != nil {
 		return nil, err
 	}
-  if outjson {
-    return &Result{ResJson: q.buf.String()},nil
-  }
+	if outjson {
+		return &Result{ResJson: q.buf.String()}, nil
+	}
 	return parseCsv(q.buf)
 }
 
@@ -148,10 +142,10 @@ func (q *Qrunner) QsearchMakeQuery(ctx context.Context, tblname, field, search s
 	if q == nil {
 		return "", QrunnerNotInitialized
 	}
-  tbl, err := q.findTable(ctx, tblname)
-  if err !=nil {
-    return "", err
-  }
+	tbl, err := q.findTable(ctx, tblname)
+	if err != nil {
+		return "", err
+	}
 	return tbl.makeQuery(field, search), nil
 }
 
@@ -171,4 +165,22 @@ func parseCsv(r io.Reader) (*Result, error) {
 		res.Rows = resrows[1:]
 	}
 	return &res, err
+}
+
+func Drivers() (*Result, error) {
+  buf := &bytes.Buffer{}
+	available := drivers.Available()
+	fmt.Fprintln(buf, "Name,DSN Alias")
+	drvmap := make(map[string]string) // only get unique
+	drvkeys := make([]string, 0)
+	for drv := range available {
+		_, aliases := dburl.SchemeDriverAndAliases(drv)
+		drvmap[drv] = strings.Join(aliases, " ") + drvmap[drv]
+		drvkeys = append(drvkeys, drv)
+	}
+	sort.Strings(drvkeys)
+	for _, drv := range drvkeys {
+		fmt.Fprintf(buf, "%s,%s\n", drv, drvmap[drv])
+	}
+  return parseCsv(buf)
 }

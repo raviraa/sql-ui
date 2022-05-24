@@ -20,17 +20,17 @@ type (
 )
 
 func (c *query) Get(ctx *gin.Context) {
-	page := controller.NewPage(*ctx, c.Container)
+	page := controller.NewPage(ctx, c.Container)
 	page.Layout = "main"
 	page.Name = "empty"
 	page.Title = "Query"
 	page.Data = queryData{}
 
-	c.RenderPage(*ctx, page)
+	c.RenderPage(ctx, page)
 }
 
 func (c *query) Post(ctx *gin.Context) {
-	page := controller.NewPage(*ctx, c.Container)
+	page := controller.NewPage(ctx, c.Container)
 	page.Layout = "htmx"
 	page.Name = "query-results"
 	page.Title = "Query Results"
@@ -40,12 +40,13 @@ func (c *query) Post(ctx *gin.Context) {
 	qr, err := c.Container.Qrunner.Query(ctx.Request.Context(), c.Container.Query, false)
 	if err != nil {
 		errmsg = err.Error()
-	}
+	}else {
+    c.Container.Config.AddHistEntry(c.Container.Query)
+  }
 
 	page.Data = queryData{
 		Errmsg: errmsg,
 		Result: qr,
 	}
-
-	c.RenderPage(*ctx, page)
+	c.RenderPage(ctx, page)
 }

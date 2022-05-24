@@ -17,10 +17,22 @@
             hx-get="/tables/meta/ListTables"
             hx-target="#result"
             class="navbar-item">Tables</a>
+        <a href="/tables/meta/ListDatabases"
+            hx-get="/tables/meta/ListDatabases"
+            hx-target="#result"
+            class="navbar-item">Databases</a>
         <a href="/tables/meta/ListDrivers"
             hx-get="/tables/meta/ListDrivers"
             hx-target="#result"
             class="navbar-item">Drivers</a>
+        <a href="/history"
+            hx-get="/history"
+            hx-target="#result"
+            class="navbar-item">History</a>
+        <a href="/connect"
+            hx-get="/connect"
+            hx-target="#result"
+            class="navbar-item">Connect</a>
       </div>
     </div>
   </nav>
@@ -53,7 +65,9 @@
     </div>
   </div>
 
-  {{template "footer" .}}
+  <noscript>
+      <h2 class="title" style="color: red"> This application requires javascript to work. Please enable javascript and try again</h2>
+  </noscript>
 </body>
 
 </html>

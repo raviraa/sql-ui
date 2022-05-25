@@ -1,0 +1,41 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, macos-latest, windows-latest]
+    # runs-on: ubuntu-latest
+    runs-on: ${{matrix.os}}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: actions/setup-go@v1
+        with:
+          go-version: '^1.18'
+      - name: Build
+        run: make all
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            sqlui-linux-default-static.zip
+            sqlui-linux-default.zip
+            sqlui-linux-most-static.zip
+            sqlui-linux-most.zip
+            sqlui-darwin-default-static.zip
+            sqlui-darwin-default.zip
+            sqlui-darwin-most-static.zip
+            sqlui-darwin-most.zip
+            sqlui-windows-default-static.zip
+            sqlui-windows-default.zip
+            sqlui-windows-most-static.zip
+            sqlui-windows-most.zip
+          body_path: changelog.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

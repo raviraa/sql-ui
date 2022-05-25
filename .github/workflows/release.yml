@@ -1,0 +1,32 @@
+name: Release
+
+on:
+  push:
+    # branches: [ main ]
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        # os: [ windows-latest]
+        os: [ubuntu-18.04, macos-latest, windows-latest]
+    # runs-on: ubuntu-latest
+    runs-on: ${{matrix.os}}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: actions/setup-go@v1
+        with:
+          go-version: '^1.18'
+      - name: Build
+        run: python3 build.py ${{matrix.os}}
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            sqlui*zip
+          body_path: changelog.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

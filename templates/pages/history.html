@@ -2,9 +2,13 @@
 <h4 class="title">History</h4>
 {{range .Data.Entries}}
 <hr>
-<div class="">
-  <span class="tag is-info">{{.RunCount}}</span>
-  {{.Query}}
+<div class="columns">
+  <div class="column is-11">
+    <p>{{.Query}}</p>
+  </div>
+  <div class="column is-1">
+    <span class="tag is-info" title="Number of times query is executed">{{.RunCount}}</span>
+  </div>
 </div>
 {{end}}
 

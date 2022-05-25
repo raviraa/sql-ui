@@ -17,8 +17,6 @@ const (
 	TemplateDir = "templates"
 	// TemplateExt stores the extension used for the template files
 	TemplateExt = ".html"
-	// StaticDir stores the name of the directory that will serve static files
-	StaticDir = "static"
 	// StaticPrefix stores the URL prefix used when serving static files
 	StaticPrefix = "files"
 	// Timeout stores default http server timeout
@@ -32,9 +30,12 @@ type Environment string
 var (
 	EnvTest Environment = "test"
 	EnvDev  Environment = "dev"
-	EnvProd Environment = "prod"
 )
+
 var AppEnvironment = EnvDev
+
+// DbDsn forces db to connect from env var DB_DSN. Will not be able to connect to other databases
+var DbDsn = ""
 
 type HistEntry struct {
 	Query    string
@@ -44,28 +45,32 @@ type HistEntry struct {
 
 // Config stores complete configuration
 type Config struct {
-	PagerSize     int         `comment:"Number of rows in each page when browsing tables"`
-	HistEntries   []HistEntry `comment:"History of queries run"`
-	HistEntryMax  int         `comment:"Maximum number of HistEntries to keep"`
-	ConnectDSN    []string    `comment:"History of connected database server dsn"`
-	ConnectDSNMax int         `comment:"Maximum number of DSN entries to keep"`
+	PagerSize        int         `comment:"Number of rows in each page when browsing tables"`
+	HistEntries      []HistEntry `comment:"History of queries run"`
+	HistEntryMax     int         `comment:"Maximum number of HistEntries to keep"`
+	ConnectDSN       []string    `comment:"History of connected database server dsn"`
+	ConnectDSNMax    int         `comment:"Maximum number of DSN entries to keep"`
+	OpenInWebBrowser bool        `comment:"Open server url in web browser on startup"`
 
 	// histEntriesMap keeps track of HistEntries in memory by Query
 	histEntriesMap map[string]*HistEntry
 }
 
-
 // GetConfig loads and returns configuration
 func GetConfig() (Config, error) {
 	var cfg Config = Config{
-		PagerSize:      20,
-		HistEntryMax:   99,
-		ConnectDSNMax:  99,
-		histEntriesMap: make(map[string]*HistEntry),
+		PagerSize:        20,
+		HistEntryMax:     99,
+		ConnectDSNMax:    99,
+		histEntriesMap:   make(map[string]*HistEntry),
+		OpenInWebBrowser: true,
 	}
 	err := cfg.readConf()
 	if err != nil {
 		log.Println("Failed to read config from: ", confLocation())
+	}
+	if dbdsn := os.Getenv("DB_DSN"); dbdsn != "" {
+		DbDsn = dbdsn
 	}
 	return cfg, nil
 }
@@ -126,17 +131,17 @@ func (c *Config) AddHistEntry(query string) {
 	}
 }
 
-func (c *Config)GetHistEntryRecent() string {
-  hentries := c.GetHistEntries()
-  if len(hentries) > 0 {
-    return hentries[0].Query
-  }
-  return ""
+func (c *Config) GetHistEntryRecent() string {
+	hentries := c.GetHistEntries()
+	if len(hentries) > 0 {
+		return hentries[0].Query
+	}
+	return ""
 }
 
 func (c *Config) GetHistEntries() []HistEntry {
 	c.syncHistEntryMap()
-  hentries := c.HistEntries
+	hentries := c.HistEntries
 	sort.Slice(hentries, func(i, j int) bool {
 		if hentries[i].RunCount == hentries[j].RunCount {
 			return hentries[i].LastRun.Before(hentries[j].LastRun)

@@ -13,6 +13,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/xo/dburl"
 	"github.com/xo/usql/drivers"
@@ -23,18 +24,22 @@ import (
 	"github.com/xo/usql/stmt"
 )
 
+// Qrunner holds database handle and executes requested queries
 type Qrunner struct {
 	h   *handler.Handler
 	buf *bytes.Buffer
 	mu  *sync.Mutex
 }
 
+// Result has results of metacmd or sql query execution
 type Result struct {
 	Rows    [][]string
 	Header  []string
+  Timing  string
 	ResJson string
 }
 
+// QrunnerNotInitialized not connected to database
 var QrunnerNotInitialized = errors.New("not connected to database")
 
 func New(dsn string) (*Qrunner, error) {
@@ -48,7 +53,6 @@ func New(dsn string) (*Qrunner, error) {
 		return nil, err
 	}
 	l, err := rline.New(false, "", "/dev/null")
-
 	if err != nil {
 		return nil, err
 	}
@@ -57,6 +61,7 @@ func New(dsn string) (*Qrunner, error) {
 	if err := h.Open(ctx, dsn); err != nil {
 		return nil, err
 	}
+
 	q := &Qrunner{
 		h:   h,
 		buf: &bytes.Buffer{},
@@ -86,14 +91,21 @@ func (q *Qrunner) Query(ctx context.Context, sqlstr string, outjson bool) (*Resu
 	prefix := stmt.FindPrefix(sqlstr, true, true, true)
 	log.Println("sql", prefix, sqlstr)
 
+	start := time.Now()
 	err := q.h.Execute(ctx, q.buf, metacmd.Option{}, prefix, sqlstr, false)
 	if err != nil {
 		return nil, err
 	}
+	timing := time.Since(start)
 	if outjson {
-		return &Result{ResJson: q.buf.String()}, nil
+		return &Result{ResJson: q.buf.String(), Timing: timing.String()}, nil
 	}
-	return parseCsv(q.buf)
+  res, err := parseCsv(q.buf)
+  if err != nil {
+    return nil, err
+  }
+  res.Timing = timing.String()
+  return res, nil
 }
 
 type Metatype string
@@ -168,7 +180,7 @@ func parseCsv(r io.Reader) (*Result, error) {
 }
 
 func Drivers() (*Result, error) {
-  buf := &bytes.Buffer{}
+	buf := &bytes.Buffer{}
 	available := drivers.Available()
 	fmt.Fprintln(buf, "Name,DSN Alias")
 	drvmap := make(map[string]string) // only get unique
@@ -182,5 +194,5 @@ func Drivers() (*Result, error) {
 	for _, drv := range drvkeys {
 		fmt.Fprintf(buf, "%s,%s\n", drv, drvmap[drv])
 	}
-  return parseCsv(buf)
+	return parseCsv(buf)
 }

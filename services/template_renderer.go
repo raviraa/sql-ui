@@ -2,16 +2,14 @@ package services
 
 import (
 	"bytes"
+	"embed"
 	"errors"
 	"fmt"
 	"html/template"
-	"log"
-	"path"
-	"path/filepath"
-	"runtime"
 	"sync"
 
-	"sql-ui/config"
+	"github.com/raviraa/sql-ui/config"
+	"github.com/raviraa/sql-ui/templates"
 	// "github.com/mikestefanello/pagoda/funcmap"
 )
 
@@ -25,16 +23,15 @@ type (
 		// funcMap stores the template function map
 		funcMap template.FuncMap
 
-		// templatePath stores the complete path to the templates directory
-		templatesPath string
-		config        *config.Config
+		templateFS embed.FS
+
+		config *config.Config
 	}
 
 	// TemplateParsed is a wrapper around parsed templates which are stored in the TemplateRenderer cache
 	TemplateParsed struct {
 		// Template is the parsed template
 		Template *template.Template
-
 		// build stores the build data used to parse the template
 		build *templateBuild
 	}
@@ -59,17 +56,9 @@ type (
 func NewTemplateRenderer(cfg *config.Config) *TemplateRenderer {
 	t := &TemplateRenderer{
 		templateCache: sync.Map{},
-		// funcMap:       funcmap.GetFuncMap(),
-		config: cfg,
+		config:        cfg,
 	}
-
-	// Gets the complete templates directory path
-	// This is needed in case this is called from a package outside of main, such as within tests
-	_, b, _, _ := runtime.Caller(0)
-	d := path.Join(path.Dir(b))
-	t.templatesPath = filepath.Join(filepath.Dir(d), config.TemplateDir)
-	log.Println("templ path", t.templatesPath)
-
+	t.templateFS = templates.TemplatesFS
 	return t
 }
 
@@ -79,11 +68,6 @@ func (t *TemplateRenderer) Parse() *templateBuilder {
 		renderer: t,
 		build:    &templateBuild{},
 	}
-}
-
-// GetTemplatesPath gets the complete path to the templates directory
-func (t *TemplateRenderer) GetTemplatesPath() string {
-	return t.templatesPath
 }
 
 // getCacheKey gets a cache key for a given group and ID
@@ -125,10 +109,11 @@ func (t *TemplateRenderer) parse(build *templateBuild) (*TemplateParsed, error) 
 		// Parse all files provided
 		if len(build.files) > 0 {
 			for k, v := range build.files {
-				build.files[k] = fmt.Sprintf("%s/%s%s", t.templatesPath, v, config.TemplateExt)
+				build.files[k] = fmt.Sprintf("%s%s", v, config.TemplateExt)
 			}
 
-			parsed, err = parsed.ParseFiles(build.files...)
+			parsed, err = parsed.ParseFS(t.templateFS, build.files...)
+			// parsed, err = parsed.ParseFiles(build.files...)
 			if err != nil {
 				return nil, err
 			}
@@ -136,14 +121,20 @@ func (t *TemplateRenderer) parse(build *templateBuild) (*TemplateParsed, error) 
 
 		// Parse all templates within the provided directories
 		for _, dir := range build.directories {
-			dir = fmt.Sprintf("%s/%s/*%s", t.templatesPath, dir, config.TemplateExt)
-			parsed, err = parsed.ParseGlob(dir)
+			finfos, err := t.templateFS.ReadDir(dir)
+			if err != nil {
+				return nil, err
+			}
+			files := []string{}
+			for _, finfo := range finfos {
+				files = append(files, dir+"/"+finfo.Name())
+			}
+			parsed, err = parsed.ParseFS(t.templateFS, files...)
 			if err != nil {
 				return nil, err
 			}
 		}
 
-		log.Printf("tmpl build files %#v", build)
 		// Store the template so this process only happens once
 		tp = &TemplateParsed{
 			Template: parsed,

@@ -40,22 +40,33 @@ var (
 	spaceRe      = regexp.MustCompile(`\s+`)
 	// TextFieldTerm is field name from ui, indicating all text fields
 	TextFieldTerm = "*text*"
-	TextSqlNames  = map[string]struct{}{
-		"varchar": struct{}{},
-		"text":    struct{}{},
+	TextSqlNames  = []string{
+		"varchar",
+		"text",
+		"char",
+		"nchar",
+		"nvarchar",
+		"ntext",
 	}
 )
 
-// makeQuery used to make sql query string from field name and search.
-// words search string is used to generate like query, unless string contains any sqlOperators
+// makeQuery is used to make sql query string from field name and search.
+// search string words is used to generate like query, unless string contains any sqlOperators
 // field can be name of the field, or special type like *text* which matches all fields of TextSqlNames
-func (t Table) makeQuery(field, search string) string{
+func (t Table) makeQuery(field, search string) string {
 	qfields := []string{}
 	if field == TextFieldTerm {
 		for _, tblfield := range t.Fields {
-			if _, ok := TextSqlNames[tblfield.Type]; ok {
-				qfields = append(qfields, tblfield.Name)
+			lcname := strings.ToLower(tblfield.Type)
+			for _, txtsqlname := range TextSqlNames {
+				if strings.Contains(lcname, txtsqlname) {
+					qfields = append(qfields, tblfield.Name)
+          break
+				}
 			}
+			// if _, ok := TextSqlNames[tblfield.Type]; ok {
+			// 	qfields = append(qfields, tblfield.Name)
+			// }
 		}
 	} else {
 		qfields = append(qfields, field)
@@ -66,14 +77,14 @@ func (t Table) makeQuery(field, search string) string{
 		qsearch = spaceRe.ReplaceAllString(qsearch, "%")
 		qsearch = "LIKE '%" + qsearch + "%'"
 	}
-  
-  query := ""
-  for idx, qfield := range qfields {
-    if idx != 0 {
-      query += " OR "
-    }
-    query += fmt.Sprintf(" %s %s", qfield, qsearch)
-  }
+
+	query := ""
+	for idx, qfield := range qfields {
+		if idx != 0 {
+			query += " OR "
+		}
+		query += fmt.Sprintf(" %s %s", qfield, qsearch)
+	}
 	log.Println(field, qfields, qsearch, query)
 	return query
 }

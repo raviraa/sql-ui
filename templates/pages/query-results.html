@@ -3,6 +3,7 @@
 {{if .Data.Errmsg}}
 <div class="danger">{{.Data.Errmsg}}</div>
 {{else}}
+<small>Query executed in: {{.Data.Timing}}</small>
 <div class="table-container">
 <table class="query-results table is-bordered">
   <thead>

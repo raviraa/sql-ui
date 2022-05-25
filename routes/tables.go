@@ -2,12 +2,11 @@ package routes
 
 import (
 	"fmt"
-	"sql-ui/controller"
-	"sql-ui/services/qrunner"
+	"github.com/raviraa/sql-ui/controller"
+	"github.com/raviraa/sql-ui/services/qrunner"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	// "github.com/labstack/echo/v4"
 )
 
 type (
@@ -22,7 +21,8 @@ type (
 		PageNumNext int64
 		Result      *qrunner.Result
 		// Table name
-		Tname string
+		Tname  string
+		Timing string
 		// base url of page with just name param
 		Url string
 	}
@@ -51,6 +51,8 @@ func (c *tables) Meta(ctx *gin.Context) {
 	}
 	if err != nil {
 		td.Errmsg = err.Error()
+	} else {
+		td.Timing = td.Result.Timing
 	}
 	page.Data = td
 	c.RenderPage(ctx, page)

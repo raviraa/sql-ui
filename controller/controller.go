@@ -6,10 +6,10 @@ import (
 	"log"
 	"net/http"
 
-	// "sql-ui/context"
-	// "sql-ui/htmx"
-	"sql-ui/htmx"
-	"sql-ui/services"
+	// "github.com/raviraa/sql-ui/context"
+	// "github.com/raviraa/sql-ui/htmx"
+	"github.com/raviraa/sql-ui/htmx"
+	"github.com/raviraa/sql-ui/services"
 
 	"github.com/gin-gonic/gin"
 	// "github.com/labstack/echo/v4"

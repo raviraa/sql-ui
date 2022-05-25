@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"sql-ui/controller"
-	"sql-ui/services/qrunner"
+	"github.com/raviraa/sql-ui/controller"
+	"github.com/raviraa/sql-ui/services/qrunner"
 
 	"github.com/gin-gonic/gin"
 	// "github.com/labstack/echo/v4"
@@ -15,6 +15,7 @@ type (
 
 	queryData struct {
 		Errmsg string
+		Timing string
 		Result *qrunner.Result
 	}
 )
@@ -34,19 +35,18 @@ func (c *query) Post(ctx *gin.Context) {
 	page.Layout = "htmx"
 	page.Name = "query-results"
 	page.Title = "Query Results"
-	var errmsg string
 	c.Container.Query = ctx.PostForm("query")
+	data := queryData{}
 
 	qr, err := c.Container.Qrunner.Query(ctx.Request.Context(), c.Container.Query, false)
 	if err != nil {
-		errmsg = err.Error()
-	}else {
-    c.Container.Config.AddHistEntry(c.Container.Query)
-  }
-
-	page.Data = queryData{
-		Errmsg: errmsg,
-		Result: qr,
+		data.Errmsg = err.Error()
+	} else {
+		data.Timing = qr.Timing
+		c.Container.Config.AddHistEntry(c.Container.Query)
 	}
+
+	data.Result = qr
+	page.Data = data
 	c.RenderPage(ctx, page)
 }

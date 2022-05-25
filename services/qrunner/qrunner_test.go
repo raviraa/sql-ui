@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	_ "github.com/xo/usql/drivers/sqlite3"
+	"github.com/xo/usql/env"
 	// _ "github.com/xo/usql/internal"
 )
 
@@ -15,6 +16,7 @@ func TestConn(t *testing.T) {
 	// dsn := "moderncsqlite:///tmp/places2.sqlite"
 	q := newDb(t)
 	defer q.Close()
+  log.Println(env.Pall())
 
 	res, err := q.Metacmd(context.Background(), DescribeTable, "t1", false)
 	require.Nil(t, err)
@@ -46,7 +48,7 @@ func TestDrivers(t *testing.T) {
 	q := newDb(t)
 	defer q.Close()
 
-	res, err := q.Metacmd(context.Background(), ListDrivers, "", false)
+	res, err := Drivers()
 	require.Nil(t, err)
 	require.Equal(t, "sqlite3", res.Rows[0][0])
 	require.Equal(t, "sq file sqlite", res.Rows[0][1])

@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"log"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
@@ -9,8 +10,10 @@ import (
 	"strings"
 	"testing"
 
-	"sql-ui/config"
-	"sql-ui/services"
+	"github.com/raviraa/sql-ui/config"
+	"github.com/raviraa/sql-ui/services"
+	"github.com/raviraa/sql-ui/services/qrunner"
+	_ "github.com/xo/usql/drivers/sqlite3"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/stretchr/testify/assert"
@@ -27,6 +30,11 @@ func TestMain(m *testing.M) {
 	config.AppEnvironment = config.EnvTest
 	// Start a new container
 	c = services.NewContainer()
+	var err error
+	c.Qrunner, err = qrunner.New("../services/qrunner/testdata/data.sqlite")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// Start a test HTTP server
 	BuildRouter(c)
@@ -56,9 +64,9 @@ func request(t *testing.T) *httpRequest {
 	jar, err := cookiejar.New(nil)
 	require.NoError(t, err)
 	r := httpRequest{
-		t:    t,
-		body: url.Values{},
-    headers: make(map[string]string),
+		t:       t,
+		body:    url.Values{},
+		headers: make(map[string]string),
 		client: http.Client{
 			Jar: jar,
 		},
@@ -83,8 +91,8 @@ func (h *httpRequest) setHeader(key, val string) *httpRequest {
 }
 
 func (h *httpRequest) addBody(key, val string) *httpRequest {
-  h.headers["Content-Type"] = "application/x-www-form-urlencoded"
-  h.body.Add(key, val)
+	h.headers["Content-Type"] = "application/x-www-form-urlencoded"
+	h.body.Add(key, val)
 	return h
 }
 
@@ -107,7 +115,7 @@ func (h *httpRequest) get() *httpResponse {
 func (h *httpRequest) post() *httpResponse {
 
 	// Make the POST requests
-  
+
 	// return c.Post(url, "application/x-www-form-urlencoded", strings.NewReader(data.Encode()))
 	// resp, err := h.client.PostForm(h.route, h.body)
 	req, err := http.NewRequest("POST", h.route, strings.NewReader(h.body.Encode()))

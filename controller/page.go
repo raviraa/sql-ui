@@ -3,8 +3,8 @@ package controller
 import (
 	"net/http"
 
-	"sql-ui/htmx"
-	"sql-ui/services"
+	"github.com/raviraa/sql-ui/htmx"
+	"github.com/raviraa/sql-ui/services"
 
 	"github.com/gin-gonic/gin"
 	// "github.com/mikestefanello/pagoda/msg"

@@ -1,9 +1,9 @@
 package routes
 
 import (
+	"github.com/raviraa/sql-ui/controller"
+	"github.com/raviraa/sql-ui/services/qrunner"
 	"log"
-	"sql-ui/controller"
-	"sql-ui/services/qrunner"
 
 	"github.com/gin-gonic/gin"
 )

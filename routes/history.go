@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"sql-ui/config"
-	"sql-ui/controller"
+	"github.com/raviraa/sql-ui/config"
+	"github.com/raviraa/sql-ui/controller"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,7 +13,7 @@ type (
 	}
 
 	historyData struct {
-    Entries []config.HistEntry
+		Entries []config.HistEntry
 	}
 )
 
@@ -21,9 +21,9 @@ func (c *history) Get(ctx *gin.Context) {
 	page := controller.NewPage(ctx, c.Container)
 	page.Layout = "main"
 	page.Name = "history"
-  page.Data =  historyData{
-    Entries: c.Container.Config.GetHistEntries(),
-  }
+	page.Data = historyData{
+		Entries: c.Container.Config.GetHistEntries(),
+	}
 
 	c.RenderPage(ctx, page)
 }

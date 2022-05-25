@@ -1,11 +1,10 @@
-module sql-ui
+module github.com/raviraa/sql-ui
 
 go 1.18
 
 require (
 	github.com/PuerkitoBio/goquery v1.8.0
 	github.com/gin-gonic/gin v1.7.7
-	github.com/joeshaw/envdecode v0.0.0-20200121155833-099f1fc765bd
 	github.com/pelletier/go-toml v1.9.5
 	github.com/stretchr/testify v1.7.0
 	github.com/xo/dburl v0.9.1

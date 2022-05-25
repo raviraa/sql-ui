@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"log"
 
-	"sql-ui/config"
-	"sql-ui/services/qrunner"
+	"github.com/raviraa/sql-ui/config"
+	"github.com/raviraa/sql-ui/services/qrunner"
 
 	"github.com/gin-gonic/gin"
 	// _ "github.com/xo/usql/drivers/sqlite3"
-	_ "sql-ui/internal"
+	_ "github.com/raviraa/sql-ui/internal"
 	// _ "github.com/xo/usql/internal"
 )
 
@@ -34,10 +34,10 @@ type Container struct {
 func NewContainer() *Container {
 	log.SetFlags(log.Lshortfile)
 	c := new(Container)
-	c.initWeb()
 	c.initConfig()
+	c.initWeb()
 	c.initTemplateRenderer()
-  c.Query = c.Config.GetHistEntryRecent()
+	c.Query = c.Config.GetHistEntryRecent()
 
 	return c
 }
@@ -55,9 +55,7 @@ func (c *Container) Shutdown() error {
 
 // initWeb initializes the web framework
 func (c *Container) initWeb() {
-	if config.AppEnvironment != config.EnvDev {
-		gin.SetMode(gin.ReleaseMode)
-	}
+	gin.SetMode(gin.ReleaseMode)
 	c.Web = gin.Default()
 }
 

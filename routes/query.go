@@ -21,6 +21,7 @@ type (
 )
 
 func (c *query) Get(ctx *gin.Context) {
+	// TODO remove this, use home
 	page := controller.NewPage(ctx, c.Container)
 	page.Layout = "main"
 	page.Name = "empty"

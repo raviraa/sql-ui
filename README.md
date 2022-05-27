@@ -1,12 +1,13 @@
 # SQL UI: Universal SQL query runner and data browser
-![Screenshot](screenshot.png)
 
 `sqlui` is query runner and data browser supporting many databases supported by [usql](https://github.com/xo/usql). `sqlui` starts server on [localhost](http://localhost:9292/) by default that can be visited in web browser. `sqlui` supports following features:
 * Ability to see available tables and table schema
 * Ability to browse table rows and quick search table text fields. 
 * Query runner that keeps history of queries executed.
+* Sample demo available at: [https://sqlui.onrender.com/](https://sqlui.onrender.com/)
 
 
+![Screenshot](screenshot.png)
 
 https://user-images.githubusercontent.com/7593807/170309052-98615e4b-299e-4173-9d1c-c7428def78a5.mov
 

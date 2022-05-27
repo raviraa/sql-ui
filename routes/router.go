@@ -60,6 +60,6 @@ func userRoutes(c *services.Container, g *gin.RouterGroup, ctr controller.Contro
 	}
 
 	g.GET("/ping", func(ctx *gin.Context) {
-		ctx.String(http.StatusOK, "pong")
+		ctx.String(http.StatusOK, "pong\n")
 	})
 }

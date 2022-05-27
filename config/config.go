@@ -34,6 +34,8 @@ var (
 
 var AppEnvironment = EnvDev
 
+var SampleDbPath = "/tmp/sample.db"
+
 // DbDsn forces db to connect from env var DB_DSN. Will not be able to connect to other databases
 var DbDsn = ""
 

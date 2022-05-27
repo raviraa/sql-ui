@@ -8,7 +8,7 @@ import (
 	"github.com/raviraa/sql-ui/services/qrunner"
 
 	"github.com/gin-gonic/gin"
-	// _ "github.com/xo/usql/drivers/sqlite3"
+	//_ "github.com/xo/usql/drivers/sqlite3"
 	_ "github.com/raviraa/sql-ui/internal"
 	// _ "github.com/xo/usql/internal"
 )

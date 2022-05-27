@@ -13,13 +13,15 @@ import (
 	"syscall"
 	"time"
 
+	_ "github.com/raviraa/sql-ui/sampledb"
+
 	"github.com/raviraa/sql-ui/config"
 	"github.com/raviraa/sql-ui/routes"
 	"github.com/raviraa/sql-ui/services"
 )
 
 //addr := "127.0.0.1:9292"
-var addr = flag.String("a", "127.0.0.1:9292", "address to listen on ")
+var addr = flag.String("a", "127.0.0.1:9292", "address to listen on. ENV PORT overrides this.")
 
 func main() {
 	flag.Parse()
@@ -31,19 +33,25 @@ func main() {
 		}
 	}()
 
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = *addr
+	} else {
+		port = ":" + port
+	}
+
 	// Build the router
 	routes.BuildRouter(c)
 	srv := http.Server{
-		Addr:         *addr,
+		Addr:         port,
 		Handler:      c.Web,
 		ReadTimeout:  config.HttpTimeout,
 		WriteTimeout: config.HttpTimeout,
 	}
-	log.Println("Listening on server: ", *addr)
+	log.Println("Listening on server: ", port)
 
 	// Start the server
 	go func() {
-		// if err := c.Web.Run(":8080"); err != http.ErrServerClosed {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatal(err)
 		}

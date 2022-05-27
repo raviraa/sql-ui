@@ -30,14 +30,14 @@ cgoenabled={
 print(osarg)
 
 def runcmd(cmd):
-    print("\n>>>", cmd)
+    print("\n>>>", cmd, flush=True)
     exitcode = os.system(cmd)
     if exitcode != 0:
         sys.exit(exitcode)
 
 def runbuilds():
     for tag in tags:
-        print("\n>>>Building ", tag)
+        print("\n>>>Building ", tag, flush=True)
         cmd = cgoenabled[tag]
         cmd += " go build -v "
         if osname[osarg] != "windows":
